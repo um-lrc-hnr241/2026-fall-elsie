@@ -97,11 +97,11 @@ video {
 }
 
 :root {
-  --text: #183525;
-  --muted: #385745;
-  --background: #f5f5df;
-  --accent: #8b1e24;
-  --border: #b5bd86;
+  --text: #f4efd8;
+  --muted: #ded2ad;
+  --background: #111a16;
+  --accent: #f0cf72;
+  --border: #76613c;
   --max-width: 72rem;
   --leaf: #2e643d;
   --sky: #dcecf0;
@@ -109,7 +109,7 @@ video {
 }
 
 body {
-  background: linear-gradient(180deg, #dcecf0 0, #edf0d7 18rem, #f5f5df 44rem);
+  background: radial-gradient(ellipse at 50% 0, #26372b 0, #17231d 34rem, #101713 75rem);
   font-family: Georgia, "Times New Roman", serif;
   color: var(--text);
 }
@@ -121,7 +121,7 @@ main,
 }
 
 .site-header {
-  border-bottom: 2px solid #8d9b63;
+  border-bottom: 2px solid #76613c;
   align-items: center;
 }
 
@@ -132,7 +132,7 @@ main,
 
 .site-title a,
 nav a {
-  color: #183525;
+  color: #f4efd8;
 }
 
 nav a {
@@ -143,7 +143,7 @@ nav a {
 
 nav a:hover,
 .site-title a:hover {
-  color: #7a2023;
+  color: #f0cf72;
 }
 
 a:focus-visible {
@@ -155,7 +155,7 @@ a:focus-visible {
 h1,
 h2,
 h3 {
-  color: #234b32;
+  color: #f0d783;
   line-height: 1.2;
 }
 
@@ -198,10 +198,10 @@ h1 {
   max-width: 62rem;
   margin: 0 auto;
   padding: 2rem clamp(1rem, 5vw, 4rem) 2.5rem;
-  border: 1px solid #9da96f;
+  border: 3px double #b18b4e;
   border-radius: 48% 48% 1rem 1rem / 12% 12% 1rem 1rem;
-  background: linear-gradient(180deg, #cfe3d1, #e6edc9 70%, #c8d69a);
-  box-shadow: inset 0 0 3rem #fff9d8, 0 0.5rem 1.5rem #344a3026;
+  background: linear-gradient(180deg, #101713a8, #111a16bd 70%, #101713e8), url("images/garden_of_eden_painting.jpg") center 43% / cover no-repeat;
+  box-shadow: inset 0 0 0 7px #251e16a6, inset 0 0 4rem #080b09a8, 0 0.5rem 1.5rem #0009;
 }
 
 .tree-art {
@@ -238,7 +238,8 @@ h1 {
   margin: 0 0 1.1rem;
   text-align: center;
   font-size: 1.5rem;
-  text-shadow: 0 1px 0 #fff;
+  color: #f4e4ad;
+  text-shadow: 0 2px 5px #000, 0 0 1rem #000;
 }
 
 .apple-grid {
@@ -312,8 +313,10 @@ h1 {
 .page-intro {
   margin: 0 0 2rem;
   padding: 1.5rem 1.75rem;
+  border: 1px solid #76613c;
   border-left: 5px solid #c8a743;
-  background: #fffef1c9;
+  background: linear-gradient(135deg, #202a20f2, #171e19f2);
+  box-shadow: inset 0 0 0 4px #c8a74318, 0 0.5rem 1.5rem #0005;
 }
 
 .page-intro h1 {
@@ -327,10 +330,10 @@ h1 {
 
 .essay-card {
   padding: 1.25rem 1.5rem;
-  border: 1px solid #b5bd86;
+  border: 1px solid #8b7045;
   border-radius: 0.5rem;
-  background: #fffef1e8;
-  box-shadow: 0 3px 10px #344a3014;
+  background: linear-gradient(145deg, #222a21f5, #171e19f5);
+  box-shadow: inset 0 0 0 4px #c8a74312, 0 3px 14px #0006;
   scroll-margin-top: 1rem;
 }
 
@@ -346,9 +349,9 @@ h1 {
 .essay-placeholder {
   min-height: 7rem;
   padding: 1rem;
-  border: 1px dashed #738154;
-  background: #f7f7e9;
-  color: #385745;
+  border: 1px dashed #a28a59;
+  background: #111915;
+  color: #ded2ad;
 }
 
 .back-link {
@@ -358,8 +361,8 @@ h1 {
 }
 
 .site-footer {
-  border-top: 1px solid #9da96f;
-  color: #385745;
+  border-top: 1px solid #76613c;
+  color: #ded2ad;
 }
 
 @media (max-width: 38rem) {
