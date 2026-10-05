@@ -109,7 +109,7 @@ video {
 }
 
 body {
-  background: radial-gradient(ellipse at 50% 0, #26372b 0, #17231d 34rem, #101713 75rem);
+  background: linear-gradient(180deg, #111a16e8, #111a16f2), url("images/garden_of_eden_painting.jpg") center / cover fixed;
   font-family: Georgia, "Times New Roman", serif;
   color: var(--text);
 }
@@ -186,7 +186,7 @@ h1 {
 
 .eyebrow {
   margin: 0;
-  color: #385745;
+  color: #eadfbf;
   font-size: 1rem;
   font-style: italic;
 }
@@ -300,7 +300,7 @@ h1 {
 .garden-note {
   max-width: 48rem;
   margin: 1.5rem auto 0;
-  color: #385745;
+  color: #eadfbf;
   font-style: italic;
   text-align: center;
 }
