@@ -100,7 +100,7 @@ video {
   --text: #f4efd8;
   --muted: #ded2ad;
   --background: #111a16;
-  --accent: #f0cf72;
+  --accent: #a9d5eb;
   --border: #76613c;
   --max-width: 72rem;
   --leaf: #2e643d;
@@ -109,7 +109,7 @@ video {
 }
 
 body {
-  background: linear-gradient(180deg, #111a16e8, #111a16f2), url("images/garden_of_eden_painting.jpg") center / cover fixed;
+  background: linear-gradient(180deg, #101923e8, #111a16f2), url("images/garden_of_eden_painting.jpg") center / cover fixed;
   font-family: Georgia, "Times New Roman", serif;
   color: var(--text);
 }
