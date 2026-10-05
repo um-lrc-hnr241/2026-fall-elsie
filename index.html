@@ -3,30 +3,50 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Our Portfolio Site</title>
+  <title>Garden of Eden | Paradise Lost</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
 
   <header class="site-header">
-    <p class="site-title"><a href="index.html">Our Portfolio Site</a></p>
-    <nav aria-label="Main">
+    <p class="site-title"><a href="index.html">Garden of Eden</a></p>
+    <nav aria-label="Main navigation">
       <ul>
-        <li><a href="index.html" aria-current="page">Home</a></li>
+        <li><a href="index.html" aria-current="page">The Tree</a></li>
+        <li><a href="build-2.html">Build 2</a></li>
+        <li><a href="build-6.html">Build 6</a></li>
+        <li><a href="build-7.html">Build 7</a></li>
       </ul>
     </nav>
   </header>
 
-  <main id="main">
-    <h1>Welcome</h1>
-    <p>This is your group's starter site. Nothing here is final.</p>
-    <p>Fill in your planning Doc, then leave a comment that starts with
-      <code>@agent build</code> to have the agent replace this page with your own.</p>
+  <main id="main" class="landing-main">
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">A student collection inspired by Milton’s <cite>Paradise Lost</cite></p>
+      <h1 id="page-title">The Garden of Eden</h1>
+      <p>Enter the garden and explore our essays. Choose an apple to visit a writer’s work or one of our team collections.</p>
+    </section>
+
+    <section class="orchard" aria-labelledby="orchard-title">
+      <div class="tree-art" aria-hidden="true"><span class="tree-trunk"></span></div>
+      <h2 id="orchard-title" class="orchard-title">Choose an apple</h2>
+      <div class="apple-grid">
+        <a class="apple-link" href="build-7.html#writer-1" target="_blank" rel="noopener noreferrer"><img src="images/apple.png" alt=""><span>Writer 1</span><small>Build 7</small></a>
+        <a class="apple-link" href="build-7.html#writer-2" target="_blank" rel="noopener noreferrer"><img src="images/apple.png" alt=""><span>Writer 2</span><small>Build 7</small></a>
+        <a class="apple-link" href="build-7.html#writer-3" target="_blank" rel="noopener noreferrer"><img src="images/apple.png" alt=""><span>Writer 3</span><small>Build 7</small></a>
+        <a class="apple-link" href="build-7.html#writer-4" target="_blank" rel="noopener noreferrer"><img src="images/apple.png" alt=""><span>Writer 4</span><small>Build 7</small></a>
+        <a class="apple-link" href="build-7.html#writer-5" target="_blank" rel="noopener noreferrer"><img src="images/apple.png" alt=""><span>Writer 5</span><small>Build 7</small></a>
+        <a class="apple-link" href="build-7.html#writer-6" target="_blank" rel="noopener noreferrer"><img src="images/apple.png" alt=""><span>Writer 6</span><small>Build 7</small></a>
+        <a class="apple-link team-apple" href="build-2.html"><img src="images/apple.png" alt=""><span>Team essay</span><small>Build 2</small></a>
+        <a class="apple-link team-apple" href="build-6.html"><img src="images/apple.png" alt=""><span>Team essay</span><small>Build 6</small></a>
+      </div>
+    </section>
+    <p class="garden-note">The six writer apples open the Build 7 collection in a new tab. The two team apples lead to our shared essay pages.</p>
   </main>
 
   <footer class="site-footer">
-    <p>Built by our group with help from an AI agent.</p>
+    <p>A student garden of essays on <cite>Paradise Lost</cite>.</p>
   </footer>
 </body>
 </html>
