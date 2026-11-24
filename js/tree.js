@@ -32,14 +32,14 @@ const scene = new THREE.Scene();
 scene.fog = new THREE.Fog(0xb7d4a8, 20, 48);
 
 const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 200);
-const TARGET = new THREE.Vector3(0, 4.0, 0);
+const TARGET = new THREE.Vector3(0, 4.5, 0);
 
 // Pick a camera distance that fits the whole tree on any screen shape
 function fitDistance() {
   const aspect = window.innerWidth / window.innerHeight;
   const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  const byHeight = 5.4 / halfH;          // fit ~10.8 units tall
-  const byWidth = 5.2 / (halfH * aspect); // fit ~10.4 units wide
+  const byHeight = 5.0 / halfH;          // fit ~10 units tall
+  const byWidth = 5.4 / (halfH * aspect); // fit ~10.8 units wide
   return Math.max(byHeight, byWidth);
 }
 let baseDist = fitDistance();
@@ -264,7 +264,7 @@ function makeEarthTexture() {
       if (Math.abs(lat) > 1.22) { r = 240; g = 246; b = 250; }            // ice caps
       else if (n > 0.55) {                                                  // land
         const t = Math.min(1, (n - 0.55) / 1.2);
-        r = 70 + t * 110; g = 140 - t * 20; b = 60 + t * 20;
+        r = 60 + t * 90; g = 150 - t * 25; b = 55 + t * 10;
       } else if (n > 0.4) { r = 70; g = 160; b = 190; }                     // shallow water
       else { const t = (n + 2) / 2.4; r = 20 + t * 15; g = 70 + t * 40; b = 150 + t * 40; } // ocean
       img.data[i] = r; img.data[i + 1] = g; img.data[i + 2] = b; img.data[i + 3] = 255;
@@ -321,18 +321,24 @@ for (let i = 0; i < 120 && blobs.length < 85; i++) {
 
 // ---------- Place the small apples around the front of the tree ----------
 const APPLE_R = 0.36;
+const LEVELS = [0.3, -0.3, 0.72, 0.25, -0.28, 0.5, 0.05, 0.62];
 APPLES.forEach((item, i) => {
   const n = APPLES.length;
   const t = n === 1 ? 0 : (i / (n - 1)) * 2 - 1; // -1 .. 1, left to right
-  const theta = t * 1.25;
-  const elev = Math.abs(t) < 0.35 ? 0.62 : (i % 2 ? -0.3 : 0.3);
-  const dir = new THREE.Vector3(Math.sin(theta) * Math.cos(elev), Math.sin(elev), Math.cos(theta) * Math.cos(elev));
-  // start inside the canopy and move outward until the apple peeks out of the leaves
+  const theta = Math.sign(t) * Math.pow(Math.abs(t), 0.7) * 1.3; // spread the middle ones apart
+  let elev = LEVELS[i % LEVELS.length];
   const pos = new THREE.Vector3();
-  for (let s = 0.6; s < 2; s += 0.02) {
-    pos.set(dir.x * RAD.x * s, dir.y * RAD.y * s, dir.z * RAD.z * s).add(CANOPY);
-    if (blobs.every((b) => pos.distanceTo(b.pos) > b.size * 0.92 + APPLE_R * 0.4)) break;
-  }
+  const place = () => {
+    const dir = new THREE.Vector3(Math.sin(theta) * Math.cos(elev), Math.sin(elev), Math.cos(theta) * Math.cos(elev));
+    // start inside the canopy and move outward until the apple peeks out of the leaves
+    for (let s = 0.6; s < 2; s += 0.02) {
+      pos.set(dir.x * RAD.x * s, dir.y * RAD.y * s, dir.z * RAD.z * s).add(CANOPY);
+      if (blobs.every((b) => pos.distanceTo(b.pos) > b.size * 0.92 + APPLE_R * 0.4)) break;
+    }
+  };
+  place();
+  // keep clear of the Earth apple and its label
+  for (let k = 0; k < 4 && pos.distanceTo(earthPos) < EARTH_R + 1.4; k++) { elev += 0.3; place(); }
   makeApple({
     item,
     radius: APPLE_R,
@@ -442,7 +448,7 @@ function animate() {
   // Intro: glide the camera in
   if (introT < 1) {
     introT = Math.min(1, introT + dt / 2.4);
-    const endPos = new THREE.Vector3(0, 4.6, baseDist);
+    const endPos = new THREE.Vector3(0, 5.2, baseDist);
     camera.position.lerpVectors(startPos, endPos, ease(introT));
     camera.lookAt(TARGET);
     if (introT === 1) controls.enabled = true;
@@ -480,7 +486,7 @@ function animate() {
 
   if (!window.__treeReady) {
     window.__treeReady = true;
-    document.getElementById("loading").classList.add("done");
+    document.getElementById("loading").remove();
   }
   requestAnimationFrame(animate);
 }
