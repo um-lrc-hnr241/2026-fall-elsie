@@ -50,6 +50,8 @@ body {
   position: fixed; bottom: 1.8rem; left: 0; right: 0; text-align: center;
   font-size: 1.1rem; font-style: italic; color: var(--olive);
   pointer-events: none; transition: opacity 1s;
+  width: max-content; margin: 0 auto; padding: 0.2rem 1rem;
+  background: rgba(244, 234, 210, 0.9); border: 1px solid var(--olive); border-radius: 3px;
 }
 .hint.hide { opacity: 0; }
 
@@ -71,7 +73,7 @@ body {
 .apple-label.hover { transform: translate(-50%, 0) scale(1.12); background: var(--apple); color: #fff8ea; }
 .apple-label.earth {
   font-size: 1.35rem; letter-spacing: 0.14em;
-  background: #3f5a3c; color: #f8efd8;
+  background: #c99a2e; color: #fffaea; border-color: #5c4310;
 }
 
 /* ---------- "Coming soon" message ---------- */
@@ -103,3 +105,11 @@ body:not(.no3d) .fallback-nav a:focus {
 }
 body.no3d .loading, body.no3d .hint { display: none; }
 body.no3d .fallback-nav { top: 50%; bottom: auto; transform: translate(-50%, -50%); }
+
+/* ---------- Phones ---------- */
+@media (max-width: 600px) {
+  .apple-label { font-size: 0.78rem; padding: 0.05rem 0.45rem; border-width: 1.5px; }
+  .apple-label.earth { font-size: 1rem; }
+  .eyebrow { font-size: 0.8rem; }
+  .hint { font-size: 0.95rem; }
+}
