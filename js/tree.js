@@ -4,6 +4,10 @@
 // =============================================================
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { paintLandscape, paintGlass, glassLandscape, paintMillefleur, finish } from "./looks.js?v=8";
+
+// Which look to use: "illustrated" (home page), "stained", "engraving" or "tapestry"
+const STYLE = window.STYLE || "illustrated";
 
 const EARTH = window.EARTH_APPLE;
 const APPLES = window.APPLES;
@@ -37,6 +41,22 @@ const C = {
   stars: ["#ffffff", "#e6dcff", "#d6ccf2"],
   berries: ["#e8692f", "#f08d3a", "#d9482b"],
 };
+// Per-style color changes and outline settings
+const LOOK = {
+  illustrated: { ink: 1, inkColor: [0.12, 0.125, 0.085] },
+  engraving: { ink: 1.3, inkColor: [0.08, 0.07, 0.06] },
+  stained: {
+    ink: 2.2, inkColor: [0.04, 0.04, 0.05],
+    colors: { bark: "#8a5a32", apple: "#d4202a", serpent: "#2f9a3e",
+      leaves: ["#2f9a4a", "#3fb35a", "#1f7a3a", "#5cc06a"], berries: ["#f0b030", "#e8692f", "#d4202a"] },
+  },
+  tapestry: {
+    ink: 0.7, inkColor: [0.17, 0.12, 0.08],
+    colors: { bark: "#b8a26a", apple: "#b8322a", serpent: "#5f7a3e",
+      leaves: ["#5d7a45", "#4b6b3e", "#6e8b4e", "#3f5c3a"], berries: ["#c8352a", "#d8503a", "#e8873a"] },
+  },
+}[STYLE];
+Object.assign(C, LOOK.colors || {});
 
 // ---------- Basic setup ----------
 const container = document.getElementById("scene");
@@ -88,13 +108,30 @@ scene.add(sun);
 const ramp = new THREE.DataTexture(new Uint8Array([105, 185, 255]), 3, 1, THREE.RedFormat);
 ramp.minFilter = ramp.magFilter = THREE.NearestFilter;
 ramp.needsUpdate = true;
-const toon = (color, extra = {}) => new THREE.MeshToonMaterial({ color, gradientMap: ramp, ...extra });
+// Woven-cloth texture used on every solid surface in the tapestry style
+let weaveTex = null;
+function toon(color, extra = {}) {
+  if (STYLE === "tapestry") {
+    if (!weaveTex) {
+      weaveTex = canvasTex(128, 128, (ctx) => { ctx.fillStyle = "#ece6d6"; ctx.fillRect(0, 0, 128, 128); });
+      weaveTex.wrapS = weaveTex.wrapT = THREE.RepeatWrapping;
+      weaveTex.repeat.set(4, 4);
+    }
+    return new THREE.MeshLambertMaterial({ color, map: weaveTex, ...extra });
+  }
+  const m = new THREE.MeshToonMaterial({ color, gradientMap: ramp, ...extra });
+  if (STYLE === "stained") { // glass glows with its own color
+    if (extra.map) { m.emissive.set("#ffffff"); m.emissiveMap = extra.map; m.emissiveIntensity = 0.18; }
+    else m.emissive.set(color).multiplyScalar(0.4);
+  }
+  return m;
+}
 
 const inkCache = new Map();
 function inkMat(thick) {
   if (!inkCache.has(thick)) {
     inkCache.set(thick, new THREE.ShaderMaterial({
-      uniforms: { thick: { value: thick } },
+      uniforms: { thick: { value: thick * LOOK.ink } },
       vertexShader: `
         uniform float thick;
         void main() {
@@ -104,7 +141,7 @@ function inkMat(thick) {
           #endif
           gl_Position = projectionMatrix * modelViewMatrix * p;
         }`,
-      fragmentShader: `void main() { gl_FragColor = vec4(0.12, 0.125, 0.085, 1.0); }`,
+      fragmentShader: `void main() { gl_FragColor = vec4(${LOOK.inkColor.map((v) => v.toFixed(3)).join(",")}, 1.0); }`,
       side: THREE.BackSide,
     }));
   }
@@ -119,12 +156,13 @@ function inked(geo, mat, thick, parent) {
 }
 
 // ---------- Hand-drawn textures (drawn in code) ----------
-function canvasTex(w, h, draw) {
+function canvasTex(w, h, draw, { finished = true } = {}) {
   const c = document.createElement("canvas");
   c.width = w; c.height = h;
   const ctx = c.getContext("2d");
   ctx.lineJoin = ctx.lineCap = "round";
   draw(ctx, w, h);
+  if (finished) finish(STYLE, ctx, w, h, rand2);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 4;
@@ -256,114 +294,40 @@ function earthTex() {
   const BH = (2 * Math.PI * BR * H) / W;  // keeps the painting's proportions
   const yTop = BH - 12;
   const toCanvas = (y) => ((yTop - y) / BH) * H;
-  const r2 = rand2;
+  let floorColor = "#7d9969";
   const tex = canvasTex(W, H, (ctx) => {
-    const inkLine = (w) => { ctx.strokeStyle = C.ink; ctx.lineWidth = w; ctx.stroke(); };
-    // sky
-    const g = ctx.createLinearGradient(0, 0, 0, toCanvas(6));
-    g.addColorStop(0, "#a9c6cf"); g.addColorStop(0.55, "#d6e3dc"); g.addColorStop(1, "#f6edd6");
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-
-    // draw something twice near the edges so the panorama wraps seamlessly
-    const wrap = (x, fn) => { fn(x); if (x < 300) fn(x + W); if (x > W - 300) fn(x - W); };
-
-    // sun with wavy rays
-    wrap(W / 2 - 620, (x) => {
-      const y = toCanvas(22);
-      for (let i = 0; i < 16; i++) {
-        const a = (i / 16) * Math.PI * 2;
-        ctx.beginPath();
-        ctx.moveTo(x + Math.cos(a) * 62, y + Math.sin(a) * 62);
-        ctx.quadraticCurveTo(x + Math.cos(a + 0.12) * 85, y + Math.sin(a + 0.12) * 85, x + Math.cos(a) * (i % 2 ? 100 : 115), y + Math.sin(a) * (i % 2 ? 100 : 115));
-        ctx.strokeStyle = "#d9a82e"; ctx.lineWidth = 7; ctx.stroke();
-      }
-      ctx.beginPath(); ctx.arc(x, y, 55, 0, 7); ctx.fillStyle = "#f2c95a"; ctx.fill(); inkLine(4);
-      ctx.beginPath(); ctx.arc(x, y, 38, 0, 7); ctx.strokeStyle = "#fbe3a0"; ctx.lineWidth = 4; ctx.stroke();
-    });
-
-    // scalloped clouds with ink outlines
-    for (let i = 0; i < 18; i++) {
-      const cx = r2() * W, cy = toCanvas(15 + r2() * 14), cw = 70 + r2() * 90;
-      const n = 4 + Math.floor(r2() * 3);
-      if (Math.abs(cx - W / 2) < 700) continue; // keep the sky behind the title clear
-      wrap(cx, (x) => {
-        const puffs = [];
-        for (let k = 0; k < n; k++) {
-          const t = k / (n - 1);
-          puffs.push([x - cw / 2 + t * cw, cy - Math.sin(t * Math.PI) * cw * 0.18, cw * (0.16 + Math.sin(t * Math.PI) * 0.12)]);
-        }
-        const shape = (grow) => {
-          ctx.beginPath();
-          puffs.forEach(([px, py, pr]) => { ctx.moveTo(px + pr + grow, py); ctx.arc(px, py, pr + grow, 0, 7); });
-          ctx.rect(x - cw / 2 - grow, cy - 4 - grow, cw + grow * 2, cw * 0.14 + grow * 2);
-        };
-        shape(3); ctx.fillStyle = C.ink; ctx.fill();          // outline
-        shape(0); ctx.fillStyle = "#fbf6e8"; ctx.fill();      // cloud
-        ctx.beginPath(); ctx.moveTo(x - cw * 0.3, cy + cw * 0.05); ctx.quadraticCurveTo(x, cy - cw * 0.03, x + cw * 0.25, cy + cw * 0.05);
-        ctx.strokeStyle = "#b9ccd2"; ctx.lineWidth = 2.5; ctx.stroke();
-      });
+    if (STYLE === "stained") {
+      paintGlass(ctx, W, H, rand2, glassLandscape(W, toCanvas, rand2));
+      floorColor = "#24622f";
+    } else if (STYLE === "tapestry") {
+      paintMillefleur(ctx, W, H, rand2, 15000);
+      finish("tapestry", ctx, W, H, rand2);
+      floorColor = "#1e2c1d";
+    } else {
+      floorColor = paintLandscape(ctx, W, H, toCanvas, rand2);
+      if (STYLE === "engraving") finish("engraving", ctx, W, H, rand2);
     }
-
-    // a few distant birds
-    for (let i = 0; i < 14; i++) {
-      const bx = r2() * W, by = toCanvas(16 + r2() * 12), s = 6 + r2() * 6;
-      ctx.beginPath(); ctx.moveTo(bx - s, by); ctx.quadraticCurveTo(bx - s / 2, by - s * 0.7, bx, by);
-      ctx.quadraticCurveTo(bx + s / 2, by - s * 0.7, bx + s, by); inkLine(2);
-    }
-
-    // rolling hills: far, middle, near (seamless waves)
-    const layers = [
-      { base: 7.2, amp: 1.4, f: [3, 7, 11], fill: "#c3cdaa", trees: 0 },
-      { base: 5.6, amp: 1.1, f: [4, 9, 14], fill: "#a2b38b", trees: 26 },
-      { base: 4.2, amp: 0.8, f: [5, 12, 17], fill: "#84a06f", trees: 40 },
-    ];
-    for (const L of layers) {
-      const ph = [r2() * 6, r2() * 6, r2() * 6];
-      const ridge = (x) => {
-        const u = (x / W) * Math.PI * 2;
-        const y = L.base + L.amp * (Math.sin(u * L.f[0] + ph[0]) * 0.6 + Math.sin(u * L.f[1] + ph[1]) * 0.3 + Math.sin(u * L.f[2] + ph[2]) * 0.1);
-        return toCanvas(y);
-      };
-      ctx.beginPath(); ctx.moveTo(0, H);
-      for (let x = 0; x <= W; x += 8) ctx.lineTo(x, ridge(x));
-      ctx.lineTo(W, H); ctx.closePath();
-      ctx.fillStyle = L.fill; ctx.fill();
-      ctx.beginPath();
-      for (let x = 0; x <= W; x += 8) x === 0 ? ctx.moveTo(x, ridge(x)) : ctx.lineTo(x, ridge(x));
-      inkLine(3);
-      // little trees on the ridge
-      for (let i = 0; i < L.trees; i++) {
-        const tx = r2() * W, ty = ridge(tx) + 4, s = (L.trees > 30 ? 1 : 0.75) * (0.8 + r2() * 0.5);
-        wrap(tx, (x) => {
-          if (r2() < 0.5) {   // round tree
-            ctx.beginPath(); ctx.moveTo(x, ty); ctx.lineTo(x, ty - 26 * s); inkLine(4 * s);
-            ctx.beginPath(); ctx.arc(x, ty - 36 * s, 16 * s, 0, 7); ctx.fillStyle = r2() < 0.5 ? "#5f8b6a" : "#6f9a74"; ctx.fill(); inkLine(2.5);
-          } else {            // cypress
-            ctx.beginPath(); ctx.ellipse(x, ty - 30 * s, 8 * s, 30 * s, 0, 0, 7);
-            ctx.fillStyle = "#4f7a5a"; ctx.fill(); inkLine(2.5);
-          }
-        });
-      }
-    }
-    // tiny flowers in the nearest fields
-    const flowerCols = ["#f1e6c8", "#e9c14a", "#d8503a", "#8f74c0", "#9fb7d6"];
-    const fg = ctx.createLinearGradient(0, toCanvas(4), 0, H);
-    fg.addColorStop(0, "rgba(84,110,70,0)"); fg.addColorStop(1, "rgba(84,110,70,0.55)");
-    ctx.fillStyle = fg; ctx.fillRect(0, toCanvas(4), W, H);
-    for (let i = 0; i < 1400; i++) {
-      const x = r2() * W, y = toCanvas(3.4 - r2() * 15);
-      ctx.beginPath(); ctx.arc(x, y, 0.8 + r2() * 1.2, 0, 7);
-      ctx.fillStyle = flowerCols[i % flowerCols.length]; ctx.fill();
-    }
-  });
+  }, { finished: false });
   const backdrop = new THREE.Mesh(
     new THREE.CylinderGeometry(BR, BR, BH, 96, 1, true),
-    new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false })
+    new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide })
   );
   backdrop.position.y = yTop - BH / 2;
   scene.add(backdrop);
-  // meadow floor out to the backdrop
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(BR, 64), new THREE.MeshBasicMaterial({ color: "#7d9969" }));
+  // the ground out to the horizon, patterned to match the style
+  let floorTex = null;
+  if (STYLE === "stained") {
+    const pick = (a) => a[Math.floor(rand2() * a.length)];
+    floorTex = canvasTex(1024, 1024, (ctx, w, h) => paintGlass(ctx, w, h, rand2,
+      () => (rand2() < 0.06 ? pick(["#d4202a", "#f0b030"]) : pick(["#2f7a3a", "#3d9447", "#24622f", "#5aa83a"])), 64, 4), { finished: false });
+  } else if (STYLE === "tapestry") {
+    floorTex = canvasTex(1024, 1024, (ctx, w, h) => paintMillefleur(ctx, w, h, rand2, 3000));
+  } else if (STYLE === "engraving") {
+    floorTex = canvasTex(256, 256, (ctx, w, h) => { ctx.fillStyle = floorColor; ctx.fillRect(0, 0, w, h); });
+  }
+  if (floorTex) { floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping; floorTex.repeat.set(10, 10); }
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(BR, 64),
+    new THREE.MeshBasicMaterial(floorTex ? { map: floorTex } : { color: floorColor }));
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -0.03;
   scene.add(floor);
@@ -375,7 +339,16 @@ const hillY = (r) => HILL_H * Math.sqrt(Math.max(0, 1 - (r * r) / (HILL_R * HILL
 {
   const g = new THREE.SphereGeometry(1, 72, 24, 0, Math.PI * 2, 0, Math.PI / 2);
   g.scale(HILL_R, HILL_H, HILL_R);
-  const tex = canvasTex(512, 512, (ctx, w, h) => {
+  let tex;
+  if (STYLE === "tapestry") {
+    tex = canvasTex(2048, 512, (ctx, w, h) => paintMillefleur(ctx, w, h, rand2, 6000, true));
+  } else if (STYLE === "stained") {
+    const pick = (a) => a[Math.floor(rand2() * a.length)];
+    tex = canvasTex(1024, 512, (ctx, w, h) => paintGlass(ctx, w, h, rand2,
+      () => (rand2() < 0.08 ? pick(["#d4202a", "#f0b030", "#8a5ac8"]) : pick(["#2f7a3a", "#3d9447", "#5aa83a", "#7a8a2a", "#24622f"])), 34, 3), { finished: false });
+  }
+  if (tex) { for (let i = 0; i < 15000; i++) rand(); } // keep the tree's shape the same in every style
+  else tex = canvasTex(512, 512, (ctx, w, h) => {
     ctx.fillStyle = C.hill; ctx.fillRect(0, 0, w, h);
     const dots = ["#5e5a31", "#7d7745", "#857f4b", "#5a5a35"];
     for (let i = 0; i < 5000; i++) {
@@ -586,7 +559,7 @@ function makeApple({ item, radius, material, position, isEarth = false, ink }) {
   }
   if (best && best.p.distanceTo(top) < 1.6) twig(top, best.p);
 
-  const apple = { item, group, body, material, label, radius, isEarth, hover: 0, phase: rand() * 6.28 };
+  const apple = { item, group, body, material, label, radius, isEarth, hover: 0, phase: rand() * 6.28, glow: material.emissive.clone() };
   hit.userData.apple = apple;
   clickable.push(hit);
   apples.push(apple);
@@ -955,7 +928,7 @@ function animate() {
     a.group.scale.setScalar(a.radius * (1 + a.hover * (a.isEarth ? 0.12 : 0.3)));
     a.body.rotation.z = Math.sin(t * 0.9 + a.phase) * 0.06;
     if (a.isEarth) a.body.rotation.y += dt * 0.25;
-    a.material.emissive.setRGB(0.3 * a.hover, 0.18 * a.hover, 0.05 * a.hover);
+    a.material.emissive.copy(a.glow).add(new THREE.Color(0.3 * a.hover, 0.18 * a.hover, 0.05 * a.hover));
   }
 
   // birds circle the tree, flapping
