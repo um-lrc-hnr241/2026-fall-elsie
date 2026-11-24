@@ -1,8 +1,10 @@
 :root {
-  --gold: #f3d48a;
-  --cream: #fff8e7;
-  --deep: #1e3324;
-  --apple: #c81d25;
+  --parchment: #f4ead2;
+  --ink: #23241a;
+  --sage: #5f8b72;
+  --olive: #4e5b3c;
+  --apple: #cf3b26;
+  --lilac: #8f74c0;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -10,63 +12,74 @@
 html, body { height: 100%; overflow: hidden; }
 
 body {
-  font-family: "Cormorant Garamond", Georgia, serif;
-  color: var(--deep);
-  /* Dawn sky behind the 3D scene */
-  background: radial-gradient(ellipse at 50% 30%, #fff6dc 0%, #f6dfae 35%, #a9cfa4 75%, #5d8f6a 100%);
+  font-family: "IM Fell English", Georgia, serif;
+  color: var(--ink);
+  background: radial-gradient(ellipse at 50% 40%, #faf3e2 0%, var(--parchment) 55%, #eadcb9 100%);
 }
 
 #scene { position: fixed; inset: 0; }
 #scene canvas { display: block; touch-action: none; }
 
+/* Illustrated border around the page */
+.frame {
+  position: fixed; inset: 12px; pointer-events: none;
+  border: 3px solid var(--olive); border-radius: 4px;
+}
+.frame::after {
+  content: ""; position: absolute; inset: 5px;
+  border: 1px solid var(--olive); border-radius: 2px;
+}
+
 /* ---------- Title ---------- */
 .title {
-  position: fixed; top: 2.2rem; left: 0; right: 0;
+  position: fixed; top: 2.1rem; left: 0; right: 0;
   text-align: center; pointer-events: none;
 }
 .eyebrow {
-  font-style: italic; letter-spacing: 0.3em; text-transform: uppercase;
-  font-size: 0.95rem; opacity: 0.75;
+  font-family: "IM Fell English SC", Georgia, serif;
+  letter-spacing: 0.3em; font-size: 0.95rem; color: var(--olive);
 }
+.eyebrow::before, .eyebrow::after { content: " ❦ "; color: var(--apple); letter-spacing: 0; }
 .title h1 {
-  font-size: clamp(2.2rem, 5.5vw, 4rem); font-weight: 700; line-height: 1.05;
-  text-shadow: 0 2px 18px rgba(255, 246, 220, 0.9);
+  font-family: "IM Fell English SC", Georgia, serif;
+  font-size: clamp(2.2rem, 5.5vw, 4rem); font-weight: 400; line-height: 1.05;
+  color: #2f3a28;
 }
 
 .hint {
-  position: fixed; bottom: 1.6rem; left: 0; right: 0; text-align: center;
-  font-size: 1.1rem; font-style: italic; opacity: 0.8; pointer-events: none;
-  transition: opacity 1s;
+  position: fixed; bottom: 1.8rem; left: 0; right: 0; text-align: center;
+  font-size: 1.1rem; font-style: italic; color: var(--olive);
+  pointer-events: none; transition: opacity 1s;
 }
 .hint.hide { opacity: 0; }
 
 .loading {
   position: fixed; inset: 0; display: grid; place-items: center;
-  font-size: 1.4rem; font-style: italic; pointer-events: none; transition: opacity 0.8s;
+  font-size: 1.4rem; font-style: italic; pointer-events: none;
 }
-.loading.done { opacity: 0; }
 
 /* ---------- Apple labels ---------- */
 #labels { position: fixed; inset: 0; pointer-events: none; }
 .apple-label {
   position: absolute; transform: translate(-50%, 0);
-  padding: 0.15rem 0.7rem; border-radius: 999px;
-  background: rgba(255, 248, 231, 0.82); backdrop-filter: blur(4px);
-  font-size: 1rem; font-weight: 700; white-space: nowrap;
-  opacity: 0.75; transition: opacity 0.2s, transform 0.2s;
-  box-shadow: 0 2px 10px rgba(30, 51, 36, 0.15);
+  padding: 0.1rem 0.7rem; border-radius: 3px;
+  background: var(--parchment); border: 2px solid var(--ink);
+  font-family: "IM Fell English SC", Georgia, serif;
+  font-size: 1rem; white-space: nowrap;
+  transition: transform 0.2s, background 0.2s, color 0.2s;
 }
-.apple-label.hover { opacity: 1; transform: translate(-50%, 0) scale(1.12); }
+.apple-label.hover { transform: translate(-50%, 0) scale(1.12); background: var(--apple); color: #fff8ea; }
 .apple-label.earth {
-  font-size: 1.35rem; letter-spacing: 0.12em; text-transform: uppercase;
-  background: rgba(30, 51, 36, 0.85); color: var(--cream); opacity: 0.95;
+  font-size: 1.35rem; letter-spacing: 0.14em;
+  background: #3f5a3c; color: #f8efd8;
 }
 
 /* ---------- "Coming soon" message ---------- */
 .toast {
-  position: fixed; bottom: 4rem; left: 50%; transform: translate(-50%, 20px);
-  padding: 0.7rem 1.4rem; border-radius: 12px;
-  background: var(--deep); color: var(--cream); font-size: 1.15rem;
+  position: fixed; bottom: 4.2rem; left: 50%; transform: translate(-50%, 20px);
+  padding: 0.6rem 1.4rem; border-radius: 3px;
+  background: var(--parchment); border: 2px solid var(--ink);
+  font-family: "IM Fell English SC", Georgia, serif; font-size: 1.15rem;
   opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.3s;
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -78,10 +91,10 @@ body {
   width: min(90%, 700px);
 }
 .fallback-nav a {
-  padding: 0.5rem 1rem; border-radius: 999px; background: var(--apple); color: #fff;
-  text-decoration: none; font-weight: 700; font-size: 1.05rem;
+  padding: 0.45rem 1rem; border-radius: 3px; border: 2px solid var(--ink);
+  background: var(--apple); color: #fff8ea; text-decoration: none;
+  font-family: "IM Fell English SC", Georgia, serif; font-size: 1.05rem;
 }
-/* Hidden until a keyboard user tabs to it */
 body:not(.no3d) .fallback-nav a {
   position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);
 }
