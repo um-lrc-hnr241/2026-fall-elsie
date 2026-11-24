@@ -14,6 +14,11 @@ const rand = () => {
   seed = (seed * 16807) % 2147483647;
   return (seed - 1) / 2147483646;
 };
+let seed2 = 99;
+const rand2 = () => {
+  seed2 = (seed2 * 16807) % 2147483647;
+  return (seed2 - 1) / 2147483646;
+};
 const randUnit = () => {
   const u = rand() * 2 - 1, th = rand() * Math.PI * 2, s = Math.sqrt(1 - u * u);
   return new THREE.Vector3(s * Math.cos(th), u, s * Math.sin(th));
@@ -29,8 +34,8 @@ const C = {
   apple: "#cf3b26",
   serpent: "#6e8a52",
   leaves: ["#7aa58a", "#6a9a7e", "#86ad8f", "#5f8f78"],
-  stars: ["#ffffff", "#e6dcff", "#d6ccf2"],
-  berries: ["#e8692f", "#f08d3a", "#d9482b"],
+  stars: ["#ffffff", "#e6dcff", "#d6ccf2", "#ffd9c4", "#fff3c0"],
+  berries: ["#e8692f", "#f08d3a", "#d9482b", "#c8352a", "#e9c14a"],
 };
 
 // ---------- Basic setup ----------
@@ -250,12 +255,64 @@ const hillY = (r) => HILL_H * Math.sqrt(Math.max(0, 1 - (r * r) / (HILL_R * HILL
 {
   const g = new THREE.SphereGeometry(1, 72, 24, 0, Math.PI * 2, 0, Math.PI / 2);
   g.scale(HILL_R, HILL_H, HILL_R);
-  const tex = canvasTex(512, 512, (ctx, w, h) => {
-    ctx.fillStyle = C.hill; ctx.fillRect(0, 0, w, h);
-    const dots = ["#5e5a31", "#7d7745", "#857f4b", "#5a5a35"];
-    for (let i = 0; i < 5000; i++) {
-      ctx.fillStyle = dots[i % 4];
-      ctx.beginPath(); ctx.arc(rand() * w, rand() * h, 1 + rand() * 2, 0, 7); ctx.fill();
+  // "Millefleur" ground, like a medieval tapestry: dark green packed with tiny flowers
+  const tex = canvasTex(4096, 1024, (ctx, w, h) => {
+    ctx.fillStyle = "#1e2c1d"; ctx.fillRect(0, 0, w, h);
+    const r2 = rand2;
+    const pick = (a) => a[Math.floor(r2() * a.length)];
+    const leafCols = ["#3f5f3a", "#55744a", "#6b8a5a", "#2f4a2e", "#7d9a62"];
+    const flowerCols = ["#f1e6c8", "#e9d9a6", "#d8503a", "#e8873a", "#e9c14a", "#9fb7d6", "#c98fb0", "#f6f0e0"];
+    function motif(x, y, size, sx) {
+      ctx.save(); ctx.translate(x, y); ctx.scale(sx, 1);
+      ctx.strokeStyle = "#141c12"; ctx.lineWidth = Math.max(0.8, size * 0.12);
+      const k = r2();
+      if (k < 0.5) {                                   // leafy sprig
+        ctx.rotate((r2() - 0.5) * 1.2);
+        ctx.strokeStyle = pick(leafCols); ctx.lineWidth = size * 0.12;
+        ctx.beginPath(); ctx.moveTo(0, size); ctx.lineTo(0, -size); ctx.stroke();
+        ctx.fillStyle = pick(leafCols);
+        for (let i = 0; i < 4; i++) {
+          const yy = size * (0.6 - i * 0.45), side = i % 2 ? 1 : -1;
+          ctx.beginPath(); ctx.ellipse(side * size * 0.28, yy, size * 0.32, size * 0.13, side * 0.6, 0, 7); ctx.fill();
+        }
+      } else if (k < 0.78) {                           // five-petal flower
+        const c = pick(flowerCols);
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * Math.PI * 2;
+          ctx.beginPath(); ctx.arc(Math.cos(a) * size * 0.42, Math.sin(a) * size * 0.42, size * 0.36, 0, 7);
+          ctx.fillStyle = c; ctx.fill(); ctx.stroke();
+        }
+        ctx.beginPath(); ctx.arc(0, 0, size * 0.22, 0, 7);
+        ctx.fillStyle = c === "#e9c14a" ? "#b5502a" : "#e9c14a"; ctx.fill();
+      } else if (k < 0.87) {                           // little red berries
+        ctx.strokeStyle = "#55744a"; ctx.lineWidth = size * 0.1;
+        ctx.beginPath(); ctx.moveTo(0, size); ctx.lineTo(0, -size * 0.2); ctx.stroke();
+        ctx.strokeStyle = "#141c12"; ctx.lineWidth = Math.max(0.8, size * 0.08);
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath(); ctx.arc((r2() - 0.5) * size, -size * 0.3 - r2() * size * 0.6, size * 0.22, 0, 7);
+          ctx.fillStyle = pick(["#c8352a", "#d8503a", "#a82a24"]); ctx.fill(); ctx.stroke();
+        }
+      } else if (k < 0.94) {                           // tiny star flower
+        starPath(ctx, 0, 0, size * 0.7, size * 0.28, 6);
+        ctx.fillStyle = pick(["#f6f0e0", "#e9c14a", "#9fb7d6"]); ctx.fill(); ctx.stroke();
+      } else {                                         // hanging bell flowers
+        ctx.strokeStyle = "#55744a"; ctx.lineWidth = size * 0.1;
+        ctx.beginPath(); ctx.moveTo(-size * 0.6, -size * 0.8); ctx.quadraticCurveTo(0, -size * 1.2, size * 0.6, -size * 0.6); ctx.stroke();
+        ctx.strokeStyle = "#141c12"; ctx.lineWidth = Math.max(0.8, size * 0.08);
+        const c = pick(["#f1e6c8", "#c98fb0", "#9fb7d6"]);
+        for (const bx of [-0.4, 0.1, 0.55]) {
+          ctx.beginPath(); ctx.ellipse(bx * size, -size * 0.35, size * 0.18, size * 0.3, 0, 0, 7);
+          ctx.fillStyle = c; ctx.fill(); ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+    // canvas top = top of the hill; squeeze motifs sideways so they stay round on the dome
+    for (let i = 0; i < 7500; i++) {
+      const y = 40 + r2() * (h - 40);
+      const theta = (y / h) * Math.PI / 2;
+      const sx = Math.min(4, 0.7 / Math.max(0.15, Math.sin(theta)));
+      motif(r2() * w, y, 7 + r2() * 9, sx);
     }
   });
   inked(g, toon("#ffffff", { map: tex }), 0.05, scene);
@@ -264,22 +321,24 @@ const hillY = (r) => HILL_H * Math.sqrt(Math.max(0, 1 - (r * r) / (HILL_R * HILL
 // Flowers scattered on the hill
 {
   const kinds = [
-    ["tulip", "#3f5fa6"], ["tulip", "#e2893a"], ["tulip", "#8a6aa8"],
+    ["tulip", "#3f5fa6"], ["tulip", "#e2893a"], ["tulip", "#8a6aa8"], ["tulip", "#d8503a"],
     ["daisy", "#e9b33a"], ["daisy", "#f3e7c9"], ["star", "#8f74c0"], ["star", "#d0553a"],
+    ["star", "#f1e6c8"], ["daisy", "#c98fb0"],
   ].map(([k, c]) => new THREE.SpriteMaterial({ map: plantTex(k, c), alphaTest: 0.5 }));
-  for (let i = 0; i < 55; i++) {
-    const r = 1.4 + Math.sqrt(rand()) * (HILL_R - 1.9);
-    const a = rand() * Math.PI * 2;
-    const s = 0.4 + rand() * 0.4;
-    const sp = new THREE.Sprite(kinds[Math.floor(rand() * kinds.length)]);
+  for (let i = 0; i < 230; i++) {
+    const r = 1.2 + Math.sqrt(rand2()) * (HILL_R - 1.5);
+    const a = rand2() * Math.PI * 2;
+    const s = 0.22 + rand2() * 0.3;
+    const sp = new THREE.Sprite(kinds[Math.floor(rand2() * kinds.length)]);
     sp.center.set(0.5, 0);
     sp.scale.set(0.6 * s, 1.2 * s, 1);
-    sp.position.set(Math.cos(a) * r, hillY(r) - 0.06, Math.sin(a) * r);
+    sp.position.set(Math.cos(a) * r, hillY(r) - 0.04, Math.sin(a) * r);
     scene.add(sp);
   }
 }
 
 // ---------- The tree ----------
+seed = 11; for (let i = 0; i < 15220; i++) rand(); // keeps the tree's shape unchanged
 const tree = new THREE.Group();
 scene.add(tree);
 const barkMat = toon(C.bark);
@@ -513,22 +572,23 @@ APPLES.forEach((item, i) => {
 {
   const keepClear = (p) =>
     !blocksView(p, earthPos, EARTH_R + 0.1) && applePositions.every((a) => !blocksView(p, a, APPLE_R + 0.1));
-  const tips = samples.filter((s) => s.depth === 0 && s.t > 0.55);
-
+  // put them on the outside of the crown, among the outer leaves
+  const outer = leaves.filter((l) => inner(l.center).length() > 0.7);
   const stars = [];
   const berries = [];
-  for (let i = 0; i < 44; i++) {
-    const s = tips[Math.floor(rand() * tips.length)];
-    const isBerry = i % 3 === 0;
-    const count = isBerry ? 5 + Math.floor(rand() * 4) : 4 + Math.floor(rand() * 3);
+  for (let i = 0; i < 260; i++) {
+    const l = outer[Math.floor(rand() * outer.length)];
+    const isBerry = i % 2 === 0;
+    const count = isBerry ? 3 + Math.floor(rand() * 4) : 2 + Math.floor(rand() * 3);
+    const hub = l.center.clone().addScaledVector(l.out, 0.32).addScaledVector(inner(l.center).normalize(), 0.12);
     for (let j = 0; j < count; j++) {
-      const p = s.p.clone().add(randUnit().multiplyScalar(isBerry ? 0.22 : 0.35));
+      const p = hub.clone().add(randUnit().multiplyScalar(isBerry ? 0.14 : 0.26));
       if (!keepClear(p)) continue;
-      (isBerry ? berries : stars).push({ p, out: p.clone().sub(s.p).normalize() });
+      (isBerry ? berries : stars).push({ p, out: l.out.clone().add(randUnit().multiplyScalar(0.4)).normalize() });
     }
   }
 
-  const starMesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.46, 0.46),
+  const starMesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.4, 0.4),
     new THREE.MeshBasicMaterial({ map: starTex, alphaTest: 0.5, side: THREE.DoubleSide }), stars.length);
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();
   stars.forEach((f, i) => {
@@ -539,9 +599,9 @@ APPLES.forEach((item, i) => {
   });
   tree.add(starMesh);
 
-  const bGeo = new THREE.SphereGeometry(0.09, 12, 8);
+  const bGeo = new THREE.SphereGeometry(0.075, 10, 8);
   const bMesh = new THREE.InstancedMesh(bGeo, toon("#ffffff"), berries.length);
-  const bInk = new THREE.InstancedMesh(bGeo, inkMat(0.022), berries.length);
+  const bInk = new THREE.InstancedMesh(bGeo, inkMat(0.018), berries.length);
   berries.forEach((b, i) => {
     m.makeTranslation(b.p.x, b.p.y, b.p.z);
     bMesh.setMatrixAt(i, m);
