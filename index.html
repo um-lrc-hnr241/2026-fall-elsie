@@ -3,9 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Coming soon</title>
+  <title>The Garden of Eden | Paradise Lost</title>
+  <meta name="description" content="An interactive Garden of Eden inspired by Milton's Paradise Lost." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Three.js (3D library), loaded from a CDN -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
 </head>
 <body>
-  <h1>Coming soon</h1>
+  <!-- 3D scene goes here -->
+  <div id="scene" aria-hidden="true"></div>
+  <div id="labels" aria-hidden="true"></div>
+
+  <header class="title">
+    <p class="eyebrow">Paradise Lost</p>
+    <h1>The Garden of Eden</h1>
+  </header>
+
+  <p class="hint" id="hint">Drag to look around · Click an apple</p>
+
+  <div class="loading" id="loading">Growing the tree…</div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Plain list of links: used by keyboards and screen readers,
+       and shown on screen if 3D can't load -->
+  <nav class="fallback-nav" id="fallback-nav" aria-label="Pages"></nav>
+
+  <script src="js/apples.js"></script>
+  <script>
+    // Build the plain link list from the same apple list
+    (function () {
+      var nav = document.getElementById("fallback-nav");
+      var items = [window.EARTH_APPLE].concat(window.APPLES);
+      items.forEach(function (item) {
+        var a = document.createElement("a");
+        a.textContent = item.label;
+        a.href = item.href || "#";
+        if (!item.href) a.addEventListener("click", function (e) { e.preventDefault(); });
+        nav.appendChild(a);
+      });
+      // If 3D hasn't started after 8 seconds, show the plain links instead
+      setTimeout(function () {
+        if (!window.__treeReady) document.body.classList.add("no3d");
+      }, 8000);
+    })();
+  </script>
+  <script type="module" src="js/tree.js"></script>
 </body>
 </html>
