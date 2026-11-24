@@ -8,7 +8,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { overflow: hidden; } /* only the fruit (or the return button) moves between Garden and Earth */
-html, body { background: #040d0c; color: var(--cream); }
+html, body { background: #11423a; color: var(--cream); }
 body { font-family: "Cormorant Garamond", Georgia, serif; }
 
 /* ---------- Garden ---------- */
@@ -16,7 +16,7 @@ body { font-family: "Cormorant Garamond", Georgia, serif; }
 #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .garden::after { /* dark vignette around the edges */
   content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: radial-gradient(ellipse at 50% 45%, transparent 50%, rgba(2, 8, 7, 0.65) 100%);
+  background: radial-gradient(ellipse at 50% 45%, transparent 60%, rgba(4, 30, 24, 0.4) 100%);
 }
 
 .title {
@@ -24,7 +24,7 @@ body { font-family: "Cormorant Garamond", Georgia, serif; }
 }
 .eyebrow {
   font-family: "Cinzel", serif; font-size: 0.85rem; letter-spacing: 0.4em; text-transform: uppercase;
-  color: var(--gold); text-shadow: 0 0 10px rgba(240, 200, 96, 0.5), 0 2px 0 #000;
+  color: #ffe7a0; text-shadow: 0 0 2px #000, 0 1px 0 #000, 0 0 12px rgba(8, 32, 25, 0.9);
 }
 .title h1 {
   font-family: "Cinzel", serif; font-weight: 700; font-size: clamp(1.8rem, 4.2vw, 3.2rem); letter-spacing: 0.08em;
