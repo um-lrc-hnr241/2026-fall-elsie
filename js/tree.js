@@ -4,7 +4,7 @@
 // =============================================================
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { paintLandscape, paintGlass, glassLandscape, paintMillefleur, paintFrieze, finish } from "./looks.js?v=10";
+import { paintLandscape, paintGlass, glassLandscape, paintMillefleur, paintFrieze, finish } from "./looks.js?v=12";
 
 // Which look to use: "illustrated" (home page), "stained", "engraving" or "tapestry"
 const STYLE = window.STYLE || "illustrated";

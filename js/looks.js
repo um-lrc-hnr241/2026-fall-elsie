@@ -348,210 +348,191 @@ export function finish(style, ctx, w, h, r) {
   ctx.restore();
 }
 
-// ---------- 4) Flat decorative panel (like an old embroidered hanging) ----------
-// A row of stylized fruit trees, vines and roses on a dark ground, standing on
-// rolling green mounds with a pale river. Everything is flat, with no depth.
+// ---------- 4) Flat decorative panel, drawn in the same style as the 3D tree ----------
+// Parchment ground, ink outlines, sage serrated leaves with cream veins, curling
+// sage branches, red apples, orange berries, purple star flowers, olive mounds.
 export function paintFrieze(ctx, W, H, toCanvas, r) {
   const pick = (a) => a[Math.floor(r() * a.length)];
   const both = (x, fn) => { fn(x); if (x < 500) fn(x + W); if (x > W - 500) fn(x - W); };
-  const INK = "#14120c";
-  const outline = (w = 1.6) => { ctx.strokeStyle = INK; ctx.lineWidth = w; ctx.stroke(); };
+  const INK = "#23241a", BARK = "#7f8d6c", APPLE = "#cf3b26";
+  const LEAVES = ["#5f8f78", "#4f7f68", "#6a9a7e", "#56856c"];
+  const BERRIES = ["#e8692f", "#f08d3a", "#d9482b"];
+  const ink = (w = 2) => { ctx.strokeStyle = INK; ctx.lineWidth = w; ctx.stroke(); };
   ctx.lineCap = ctx.lineJoin = "round";
 
-  // dark velvet ground
-  ctx.fillStyle = "#17140f"; ctx.fillRect(0, 0, W, H);
-  for (let i = 0; i < 9000; i++) {
-    ctx.fillStyle = r() < 0.5 ? "rgba(255,240,200,0.025)" : "rgba(0,0,0,0.25)";
-    ctx.fillRect(r() * W, r() * H, 2 + r() * 6, 1);
-  }
+  // parchment
+  const bg = ctx.createRadialGradient(W / 2, toCanvas(12), 0, W / 2, toCanvas(12), W * 0.6);
+  bg.addColorStop(0, "#faf3e2"); bg.addColorStop(0.6, "#f4ead2"); bg.addColorStop(1, "#eadcb9");
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
 
-  const base = toCanvas(-3.6); // where things stand
+  const base = toCanvas(-3.6);
 
-  // a single leaf: pointed, pale, with a dark midrib
+  // serrated leaf, like the tree's leaves
   const leaf = (x, y, len, ang, col) => {
+    const half = len * 0.24, n = 10;
     ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    const L = [], R = [];
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, yy = -t * len;
+      const w = Math.sin(Math.PI * Math.pow(t, 0.75)) * half;
+      const tooth = i % 2 && t > 0.15 && t < 0.9 ? half * 0.14 : 0;
+      L.push([-w - tooth, yy]); R.push([w + tooth, yy]);
+    }
     ctx.beginPath(); ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(len * 0.38, -len * 0.5, 0, -len);
-    ctx.quadraticCurveTo(-len * 0.38, -len * 0.5, 0, 0);
-    ctx.fillStyle = col; ctx.fill(); outline(1.4);
-    ctx.beginPath(); ctx.moveTo(0, -len * 0.08); ctx.lineTo(0, -len * 0.85);
-    ctx.strokeStyle = "rgba(60,70,35,0.8)"; ctx.lineWidth = 1.2; ctx.stroke();
+    L.forEach(([a, b]) => ctx.lineTo(a, b)); ctx.lineTo(0, -len);
+    R.reverse().forEach(([a, b]) => ctx.lineTo(a, b)); ctx.closePath();
+    ctx.fillStyle = col; ctx.fill(); ink(1.6);
+    ctx.beginPath(); ctx.moveTo(0, -len * 0.05); ctx.quadraticCurveTo(-1, -len * 0.5, 0, -len * 0.9);
+    ctx.strokeStyle = "#f4f1df"; ctx.lineWidth = 1.2; ctx.stroke();
     ctx.restore();
   };
-  const heartLeaf = (x, y, s, ang, col) => {
-    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
-    ctx.beginPath(); ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(-s * 1.1, -s * 0.2, -s * 0.7, -s * 1.3, 0, -s * 0.9);
-    ctx.bezierCurveTo(s * 0.7, -s * 1.3, s * 1.1, -s * 0.2, 0, 0);
-    ctx.fillStyle = col; ctx.fill(); outline(1.4);
-    ctx.beginPath(); ctx.moveTo(0, -s * 0.1); ctx.lineTo(0, -s * 0.8);
-    ctx.strokeStyle = "rgba(60,70,35,0.7)"; ctx.lineWidth = 1.2; ctx.stroke();
-    ctx.restore();
-  };
-  const leafCols = ["#a9b77a", "#c3c98f", "#8fa36a", "#b8c486", "#9caf72"];
-
-  // fruit kinds
-  const fruit = {
-    lemon: (x, y, s) => {
-      ctx.beginPath(); ctx.ellipse(x, y, s * 0.8, s * 1.05, 0.3, 0, 7);
-      ctx.fillStyle = "#e6c35e"; ctx.fill(); outline(1.5);
-      ctx.beginPath(); ctx.ellipse(x - s * 0.25, y - s * 0.35, s * 0.2, s * 0.32, 0.3, 0, 7);
-      ctx.fillStyle = "rgba(255,245,200,0.6)"; ctx.fill();
-    },
-    quince: (x, y, s) => {
-      ctx.beginPath(); ctx.arc(x, y, s, 0, 7);
-      ctx.fillStyle = "#e3a35f"; ctx.fill(); outline(1.5);
-      ctx.beginPath(); ctx.arc(x - s * 0.3, y - s * 0.3, s * 0.3, 0, 7);
-      ctx.fillStyle = "rgba(255,230,180,0.5)"; ctx.fill();
-    },
-    pomegranate: (x, y, s) => {
-      ctx.beginPath(); ctx.arc(x, y, s, 0, 7);
-      ctx.fillStyle = "#c46a5c"; ctx.fill(); outline(1.5);
-      ctx.beginPath(); ctx.moveTo(x - s * 0.3, y - s * 0.85); ctx.lineTo(x - s * 0.15, y - s * 1.3);
-      ctx.lineTo(x, y - s * 0.95); ctx.lineTo(x + s * 0.15, y - s * 1.3); ctx.lineTo(x + s * 0.3, y - s * 0.85);
-      ctx.fillStyle = "#a9503f"; ctx.fill(); outline(1.2);
-      for (let i = 0; i < 5; i++) {
-        ctx.beginPath(); ctx.arc(x + (r() - 0.5) * s, y + (r() - 0.3) * s * 0.8, s * 0.1, 0, 7);
-        ctx.fillStyle = "#7d2e2a"; ctx.fill();
+  const star = (x, y, o) => {
+    const path = (outer, inner) => {
+      ctx.beginPath();
+      for (let k = 0; k < 10; k++) {
+        const rr = k % 2 ? inner : outer, a = (k / 10) * Math.PI * 2 - Math.PI / 2;
+        ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
       }
-    },
+      ctx.closePath();
+    };
+    path(o, o * 0.4); ctx.fillStyle = "#8f74c0"; ctx.fill(); ink(1.4);
+    path(o * 0.5, o * 0.2); ctx.fillStyle = "#b9a4e0"; ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, o * 0.16, 0, 7); ctx.fillStyle = "#f2c14e"; ctx.fill();
+  };
+  const apple = (x, y, s) => {
+    ctx.beginPath(); ctx.moveTo(x, y - s * 0.6);
+    ctx.bezierCurveTo(x + s * 1.1, y - s * 1.2, x + s * 1.2, y + s * 0.9, x, y + s * 0.85);
+    ctx.bezierCurveTo(x - s * 1.2, y + s * 0.9, x - s * 1.1, y - s * 1.2, x, y - s * 0.6);
+    ctx.fillStyle = APPLE; ctx.fill(); ink(1.6);
+    ctx.beginPath(); ctx.ellipse(x - s * 0.4, y - s * 0.15, s * 0.16, s * 0.28, 0.3, 0, 7);
+    ctx.fillStyle = "rgba(255,230,210,0.55)"; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x, y - s * 0.6); ctx.lineTo(x + s * 0.2, y - s * 1.1); ink(2);
+  };
+  const berries = (x, y) => {
+    for (let k = 0; k < 4 + Math.floor(r() * 3); k++) {
+      ctx.beginPath(); ctx.arc(x + (r() - 0.5) * 14, y + (r() - 0.5) * 12, 3.6, 0, 7);
+      ctx.fillStyle = pick(BERRIES); ctx.fill(); ink(1.1);
+    }
   };
 
-  // a stylized fruit tree
-  const tree = (x, h, kind) => {
-    const cy = base - h * 0.62, rx = h * 0.42, ry = h * 0.33;
-    // trunk
+  // a curling, scroll-ended branch (sage with ink edges)
+  const branch = (x0, y0, x1, y1, w, curl) => {
+    const mx = (x0 + x1) / 2 + (r() - 0.5) * 30, my = (y0 + y1) / 2 - 25;
+    const draw = () => {
+      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(mx, my, x1, y1);
+      // a small spiral at the tip, like the scrolls on the tree
+      let a = Math.atan2(y1 - my, x1 - mx), rad = 14;
+      for (let k = 0; k < 14; k++) {
+        a += curl * 0.45; rad *= 0.86;
+        ctx.lineTo(x1 + Math.cos(a) * (14 - rad) * 0.9, y1 + Math.sin(a) * (14 - rad) * 0.9);
+      }
+    };
+    draw(); ctx.strokeStyle = INK; ctx.lineWidth = w + 3; ctx.stroke();
+    draw(); ctx.strokeStyle = BARK; ctx.lineWidth = w; ctx.stroke();
+  };
+
+  // a small tree in the same style as the big one
+  const tree = (x, h) => {
+    const cy = base - h * 0.62, rx = h * 0.42, ry = h * 0.34;
     ctx.beginPath();
-    ctx.moveTo(x - 11, base + 6);
-    ctx.quadraticCurveTo(x - 7, base - h * 0.3, x - 5, cy + ry * 0.2);
-    ctx.lineTo(x + 5, cy + ry * 0.2);
-    ctx.quadraticCurveTo(x + 7, base - h * 0.3, x + 11, base + 6);
+    ctx.moveTo(x - 12, base + 6);
+    ctx.quadraticCurveTo(x - 8, base - h * 0.3, x - 6, cy + ry * 0.2);
+    ctx.lineTo(x + 6, cy + ry * 0.2);
+    ctx.quadraticCurveTo(x + 8, base - h * 0.3, x + 12, base + 6);
     ctx.closePath();
-    ctx.fillStyle = "#6e623d"; ctx.fill(); outline(2);
-    // branches
+    ctx.fillStyle = BARK; ctx.fill(); ink(2.2);
+    // roots
+    for (const s of [-1, 1]) {
+      ctx.beginPath(); ctx.moveTo(x + s * 8, base); ctx.quadraticCurveTo(x + s * 18, base + 2, x + s * 26, base + 8);
+      ctx.strokeStyle = INK; ctx.lineWidth = 6; ctx.stroke(); ctx.strokeStyle = BARK; ctx.lineWidth = 3; ctx.stroke();
+    }
     for (let i = 0; i < 9; i++) {
       const a = Math.PI * (1.05 + (i / 8) * 0.9);
-      const sx = x, sy = cy + ry * 0.25 - i * 6;
-      const ex = x + Math.cos(a) * rx * (0.7 + r() * 0.3), ey = cy + Math.sin(a) * ry * (0.7 + r() * 0.3);
-      ctx.beginPath(); ctx.moveTo(sx, sy);
-      ctx.quadraticCurveTo((sx + ex) / 2 + (r() - 0.5) * 30, (sy + ey) / 2 - 20, ex, ey);
-      ctx.strokeStyle = INK; ctx.lineWidth = 5.5; ctx.stroke();
-      ctx.strokeStyle = "#6e623d"; ctx.lineWidth = 3; ctx.stroke();
+      branch(x, cy + ry * 0.25 - i * 5, x + Math.cos(a) * rx * (0.75 + r() * 0.25),
+        cy + Math.sin(a) * ry * (0.75 + r() * 0.25), 3, i < 4 ? -1 : 1);
     }
-    // leaves fill an oval crown
-    for (let i = 0; i < 230; i++) {
+    for (let i = 0; i < 210; i++) {
       const a = r() * Math.PI * 2, d = Math.sqrt(r());
-      const lx = x + Math.cos(a) * d * rx, ly = cy + Math.sin(a) * d * ry;
-      leaf(lx, ly, 13 + r() * 7, a + Math.PI / 2 + (r() - 0.5) * 0.8, pick(leafCols));
+      leaf(x + Math.cos(a) * d * rx, cy + Math.sin(a) * d * ry, 15 + r() * 7, a + Math.PI / 2 + (r() - 0.5) * 0.8, pick(LEAVES));
     }
-    // fruit
-    for (let i = 0; i < 18; i++) {
-      const a = r() * Math.PI * 2, d = 0.25 + Math.sqrt(r()) * 0.7;
-      fruit[kind](x + Math.cos(a) * d * rx, cy + Math.sin(a) * d * ry, 6.5 + r() * 3);
+    for (let i = 0; i < 14; i++) {
+      const a = r() * Math.PI * 2, d = 0.3 + Math.sqrt(r()) * 0.65;
+      const fx = x + Math.cos(a) * d * rx, fy = cy + Math.sin(a) * d * ry;
+      const k = i % 3;
+      if (k === 0) apple(fx, fy, 7 + r() * 2);
+      else if (k === 1) berries(fx, fy);
+      else star(fx, fy, 7 + r() * 3);
     }
   };
 
-  // grapevine climbing a thin pole
-  const vine = (x, h) => {
+  // a flowering stem (sprigs between the trees)
+  const flowerStem = (x, h) => {
     ctx.beginPath(); ctx.moveTo(x, base + 4);
-    for (let y = base; y > base - h; y -= 20) ctx.lineTo(x + Math.sin(y * 0.03) * 10, y);
-    ctx.strokeStyle = INK; ctx.lineWidth = 6; ctx.stroke();
-    ctx.strokeStyle = "#6e623d"; ctx.lineWidth = 3; ctx.stroke();
-    for (let y = base - 40; y > base - h; y -= 34) {
-      const side = (Math.round(y) / 34) % 2 > 0.5 ? 1 : -1;
-      heartLeaf(x + Math.sin(y * 0.03) * 10, y, 22 + r() * 8, side * (0.9 + r() * 0.4), pick(leafCols));
-      if (r() < 0.45) { // a bunch of grapes
-        const gx = x - side * 26, gy = y + 8;
-        for (let k = 0; k < 10; k++) {
-          const row = Math.floor(Math.sqrt(k * 2)), col = k - (row * (row + 1)) / 2;
-          ctx.beginPath(); ctx.arc(gx + (col - row / 2) * 9, gy + row * 8, 5, 0, 7);
-          ctx.fillStyle = "#6d5a7a"; ctx.fill(); outline(1);
-        }
-      }
+    ctx.bezierCurveTo(x + 24, base - h * 0.3, x - 24, base - h * 0.65, x + 4, base - h);
+    ctx.strokeStyle = INK; ctx.lineWidth = 5; ctx.stroke(); ctx.strokeStyle = "#4f7a55"; ctx.lineWidth = 2.5; ctx.stroke();
+    for (let i = 0; i < 9; i++) {
+      const t = i / 8, y = base - h * t, xx = x + Math.sin(t * 6) * 12;
+      leaf(xx, y, 15, (i % 2 ? 1 : -1) * 1.1, pick(LEAVES));
+      if (i % 3 === 2) star(xx + (i % 2 ? -16 : 16), y - 4, 9);
     }
+    star(x + 4, base - h - 6, 11);
   };
 
-  // climbing rose
-  const rose = (x, h) => {
-    ctx.beginPath(); ctx.moveTo(x, base + 4);
-    ctx.bezierCurveTo(x + 30, base - h * 0.3, x - 30, base - h * 0.6, x + 6, base - h);
-    ctx.strokeStyle = INK; ctx.lineWidth = 5; ctx.stroke();
-    ctx.strokeStyle = "#5e6b3c"; ctx.lineWidth = 2.5; ctx.stroke();
-    for (let i = 0; i < 10; i++) {
-      const t = i / 9, y = base - h * t, xx = x + Math.sin(t * 6) * 16;
-      leaf(xx, y, 16, (i % 2 ? 1 : -1) * 1.1, pick(leafCols));
-      if (i % 3 === 1) {
-        const rx2 = xx + (i % 2 ? -22 : 22);
-        ctx.beginPath(); ctx.arc(rx2, y, 13, 0, 7); ctx.fillStyle = "#d9a3a0"; ctx.fill(); outline(1.5);
-        ctx.beginPath(); ctx.arc(rx2, y, 8, 0.5, 5.8); ctx.strokeStyle = "#a8605e"; ctx.lineWidth = 2; ctx.stroke();
-        ctx.beginPath(); ctx.arc(rx2, y, 3.5, 0, 7); ctx.fillStyle = "#a8605e"; ctx.fill();
-      }
-    }
-  };
-
-  // little ground flowers on the dark background
-  for (let i = 0; i < 500; i++) {
-    const x = r() * W, y = toCanvas(8 + r() * 25);
-    ctx.beginPath(); ctx.arc(x, y, 0.8 + r() * 1.2, 0, 7);
-    ctx.fillStyle = pick(["rgba(232,212,160,0.3)", "rgba(200,160,170,0.25)", "rgba(170,190,140,0.25)"]); ctx.fill();
+  // drifting petals on the parchment, like the 3D ones
+  for (let i = 0; i < 260; i++) {
+    ctx.beginPath(); ctx.arc(r() * W, toCanvas(6 + r() * 26), 1.5 + r() * 1.5, 0, 7);
+    ctx.fillStyle = pick(["#8f74c0", "#e8692f", "#f2c14e", "#7aa58a"]); ctx.fill();
   }
 
-  // the row of trees, with vines and roses between
-  const kinds = ["lemon", "pomegranate", "quince"];
+  // the row of trees, with flowering stems between
   const n = 15, gap = W / n;
   for (let k = 0; k < n; k++) {
     const tx = (W / 2 + k * gap) % W, mx = (tx + gap / 2) % W;
-    both(mx, (x) => (k % 2 ? vine(x, 250 + r() * 50) : rose(x, 190 + r() * 40)));
-    const h = 270 + r() * 50, kind = kinds[k % 3];
-    both(tx, (x) => tree(x, h, kind));
+    const hs = 170 + r() * 60;
+    both(mx, (x) => flowerStem(x, hs));
+    const h = 270 + r() * 50;
+    both(tx, (x) => tree(x, h));
   }
 
-  // rolling mounds with a pale river winding between them
+  // olive mounds with dotted texture, like the hill
   const moundTop = (x) => base - 8 - 22 * Math.abs(Math.sin((x / W) * Math.PI * 24));
   ctx.beginPath(); ctx.moveTo(0, H);
   for (let x = 0; x <= W; x += 6) ctx.lineTo(x, moundTop(x));
   ctx.lineTo(W, H); ctx.closePath();
-  const mg = ctx.createLinearGradient(0, base - 50, 0, H);
-  mg.addColorStop(0, "#b4b65a"); mg.addColorStop(0.35, "#7d8f3a"); mg.addColorStop(1, "#4d6328");
-  ctx.fillStyle = mg; ctx.fill(); outline(2.5);
-  // dappled grass
-  for (let i = 0; i < 2500; i++) {
-    const x = r() * W, y = moundTop(x) + 8 + r() * (H - moundTop(x));
-    ctx.beginPath(); ctx.ellipse(x, y, 3 + r() * 6, 1.2, 0, 0, 7);
-    ctx.fillStyle = r() < 0.5 ? "rgba(220,215,120,0.25)" : "rgba(40,60,20,0.25)"; ctx.fill();
+  ctx.fillStyle = "#6f6a3c"; ctx.fill();
+  ctx.save(); ctx.clip();
+  const dots = ["#5e5a31", "#7d7745", "#857f4b", "#5a5a35"];
+  for (let i = 0; i < 9000; i++) {
+    ctx.fillStyle = dots[i % 4];
+    ctx.beginPath(); ctx.arc(r() * W, base - 40 + r() * (H - base + 40), 1 + r() * 2, 0, 7); ctx.fill();
   }
-  // the river
+  ctx.restore();
+  ctx.beginPath();
+  for (let x = 0; x <= W; x += 6) x ? ctx.lineTo(x, moundTop(x)) : ctx.moveTo(x, moundTop(x));
+  ink(3);
+
+  // a winding stream, same blue as the pond
   const ry1 = (x) => base + 60 + 12 * Math.sin((x / W) * Math.PI * 16);
   ctx.beginPath();
   for (let x = 0; x <= W; x += 6) x ? ctx.lineTo(x, ry1(x)) : ctx.moveTo(x, ry1(x));
   for (let x = W; x >= 0; x -= 6) ctx.lineTo(x, ry1(x) + 28);
   ctx.closePath();
-  ctx.fillStyle = "#e6e0c8"; ctx.fill(); outline(2.5);
-  for (let i = 0; i < 260; i++) {
+  ctx.fillStyle = "#7fa4b8"; ctx.fill(); ink(3);
+  for (let i = 0; i < 200; i++) {
     const x = r() * W, y = ry1(x) + 8 + r() * 14;
     ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 8, y - 5, x + 16, y);
-    ctx.strokeStyle = "rgba(110,140,160,0.7)"; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.strokeStyle = "rgba(240,246,250,0.7)"; ctx.lineWidth = 1.5; ctx.stroke();
   }
-  // storks and small plants on the mounds
-  for (let i = 0; i < 22; i++) {
-    const x = r() * W, y = moundTop(x) + 4;
-    both(x, (sx) => {
-      if (i % 2 === 0) { // stork
-        ctx.beginPath(); ctx.moveTo(sx - 4, y); ctx.lineTo(sx - 2, y - 34); ctx.moveTo(sx + 4, y); ctx.lineTo(sx + 2, y - 34);
-        ctx.strokeStyle = "#c46a3c"; ctx.lineWidth = 2; ctx.stroke();
-        ctx.beginPath(); ctx.ellipse(sx, y - 44, 16, 11, -0.3, 0, 7); ctx.fillStyle = "#efe9da"; ctx.fill(); outline(1.5);
-        ctx.beginPath(); ctx.moveTo(sx + 10, y - 50); ctx.quadraticCurveTo(sx + 16, y - 68, sx + 10, y - 82);
-        ctx.strokeStyle = INK; ctx.lineWidth = 6; ctx.stroke(); ctx.strokeStyle = "#efe9da"; ctx.lineWidth = 3.5; ctx.stroke();
-        ctx.beginPath(); ctx.arc(sx + 10, y - 84, 5, 0, 7); ctx.fillStyle = "#efe9da"; ctx.fill(); outline(1.2);
-        ctx.beginPath(); ctx.moveTo(sx + 14, y - 85); ctx.lineTo(sx + 30, y - 80);
-        ctx.strokeStyle = "#c46a3c"; ctx.lineWidth = 2.5; ctx.stroke();
-      } else {             // daffodil clump
-        for (let k = -1; k <= 1; k++) {
-          ctx.beginPath(); ctx.moveTo(sx + k * 6, y); ctx.lineTo(sx + k * 10, y - 26);
-          ctx.strokeStyle = "#5e6b3c"; ctx.lineWidth = 2; ctx.stroke();
-          ctx.beginPath(); ctx.arc(sx + k * 10, y - 28, 5, 0, 7); ctx.fillStyle = "#e6c35e"; ctx.fill(); outline(1);
-        }
-      }
+
+  // little flowers on the mounds, like the ones on the hill
+  for (let i = 0; i < 70; i++) {
+    const x = r() * W, y = moundTop(x) + 6 + r() * 12;
+    both(x, (fx) => {
+      ctx.beginPath(); ctx.moveTo(fx, y + 10); ctx.lineTo(fx, y - 10); ink(4);
+      ctx.beginPath(); ctx.moveTo(fx, y + 10); ctx.lineTo(fx, y - 10); ctx.strokeStyle = "#4f7a55"; ctx.lineWidth = 2; ctx.stroke();
+      const c = pick(["#3f5fa6", "#e2893a", "#8a6aa8", "#e9b33a", "#f3e7c9"]);
+      if (r() < 0.5) { ctx.beginPath(); ctx.arc(fx, y - 13, 4.5, 0, 7); ctx.fillStyle = c; ctx.fill(); ink(1.3); }
+      else star(fx, y - 13, 6);
     });
   }
 }
