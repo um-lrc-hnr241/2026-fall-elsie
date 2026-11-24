@@ -174,3 +174,10 @@ body.no3d .fallback-nav { top: 50%; bottom: auto; transform: translate(-50%, -50
 .style-tapestry .apple-label { background: #7a2a22; color: #f1e6c8; border: 2px solid #c9a24a; }
 .style-tapestry .apple-label.earth { background: #c99a2e; color: #2a1a10; border-color: #5c4310; }
 .style-tapestry .hint, .style-tapestry .toast { background: #7a2a22; color: #f1e6c8; border-color: #c9a24a; }
+
+/* ----- Home page: dark painted panel behind the tree ----- */
+body:not([class*="style-"]) { background: #17140f; }
+body:not([class*="style-"]) .frame { border-color: #c9a24a; }
+body:not([class*="style-"]) .frame::after { border-color: #c9a24a; }
+body:not([class*="style-"]) .title h1 { color: #f3e7c8; text-shadow: 0 2px 0 #000, 0 0 16px rgba(0, 0, 0, 0.85); }
+body:not([class*="style-"]) .eyebrow { color: #e6c35e; text-shadow: 0 1px 0 #000; }

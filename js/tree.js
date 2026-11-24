@@ -4,7 +4,7 @@
 // =============================================================
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { paintLandscape, paintGlass, glassLandscape, paintMillefleur, finish } from "./looks.js?v=8";
+import { paintLandscape, paintGlass, glassLandscape, paintMillefleur, paintFrieze, finish } from "./looks.js?v=10";
 
 // Which look to use: "illustrated" (home page), "stained", "engraving" or "tapestry"
 const STYLE = window.STYLE || "illustrated";
@@ -292,7 +292,8 @@ function earthTex() {
 {
   const W = 4096, H = 1024, BR = 40;
   const BH = (2 * Math.PI * BR * H) / W;  // keeps the painting's proportions
-  const yTop = BH - 12;
+  const FLAT = STYLE === "illustrated"; // home page: a flat painted panel behind the 3D tree
+  const yTop = FLAT ? BH - 25 : BH - 12;
   const toCanvas = (y) => ((yTop - y) / BH) * H;
   let floorColor = "#7d9969";
   const tex = canvasTex(W, H, (ctx) => {
@@ -303,6 +304,8 @@ function earthTex() {
       paintMillefleur(ctx, W, H, rand2, 15000);
       finish("tapestry", ctx, W, H, rand2);
       floorColor = "#1e2c1d";
+    } else if (FLAT) {
+      paintFrieze(ctx, W, H, toCanvas, rand2);
     } else {
       floorColor = paintLandscape(ctx, W, H, toCanvas, rand2);
       if (STYLE === "engraving") finish("engraving", ctx, W, H, rand2);
@@ -330,7 +333,7 @@ function earthTex() {
     new THREE.MeshBasicMaterial(floorTex ? { map: floorTex } : { color: floorColor }));
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -0.03;
-  scene.add(floor);
+  if (!FLAT) scene.add(floor); // no ground receding into the distance on the flat panel
 }
 
 // ---------- The hill ----------
