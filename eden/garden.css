@@ -1,0 +1,134 @@
+:root {
+  --ink: #06110f;
+  --teal: #0f2f2a;
+  --glow: #9ff5dc;
+  --gold: #f0c860;
+  --cream: #eaf7f0;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { overflow: hidden; } /* only the fruit (or the return button) moves between Garden and Earth */
+html, body { background: #040d0c; color: var(--cream); }
+body { font-family: "Cormorant Garamond", Georgia, serif; }
+
+/* ---------- Garden ---------- */
+.garden { position: relative; height: 100vh; height: 100dvh; overflow: hidden; }
+#scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.garden::after { /* dark vignette around the edges */
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, transparent 50%, rgba(2, 8, 7, 0.65) 100%);
+}
+
+.title {
+  position: absolute; z-index: 3; top: 1.6rem; left: 0; right: 0; text-align: center; pointer-events: none;
+}
+.eyebrow {
+  font-family: "Cinzel", serif; font-size: 0.85rem; letter-spacing: 0.4em; text-transform: uppercase;
+  color: var(--gold); text-shadow: 0 0 10px rgba(240, 200, 96, 0.5), 0 2px 0 #000;
+}
+.title h1 {
+  font-family: "Cinzel", serif; font-weight: 700; font-size: clamp(1.8rem, 4.2vw, 3.2rem); letter-spacing: 0.08em;
+  color: #f4fff9; text-shadow: 0 0 18px rgba(159, 245, 220, 0.55), 0 3px 0 var(--ink), 0 0 2px var(--ink);
+}
+.hint {
+  position: absolute; z-index: 3; bottom: 1.4rem; left: 0; right: 0; text-align: center; pointer-events: none;
+  font-style: italic; font-size: 1.15rem; color: var(--cream); opacity: 0.85;
+  text-shadow: 0 2px 6px #000;
+}
+.loading {
+  position: absolute; z-index: 6; inset: 0; display: grid; place-items: center; background: #040d0c;
+  font-family: "Cinzel", serif; letter-spacing: 0.2em; color: var(--glow); transition: opacity 1.2s;
+}
+.loading.done { opacity: 0; pointer-events: none; }
+
+/* ---------- Apples ---------- */
+#apples { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.apple {
+  position: absolute; pointer-events: auto; cursor: pointer;
+  width: var(--size); height: var(--size); margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+  background: none; border: none; padding: 0; color: inherit;
+  transition: transform 0.25s ease;
+}
+.apple svg {
+  width: 100%; height: 100%; display: block; overflow: visible;
+  filter: drop-shadow(0 0 6px rgba(255, 90, 60, 0.55)) drop-shadow(0 3px 2px rgba(0, 0, 0, 0.6));
+  animation: sway 4s ease-in-out infinite; transform-origin: 50% 8%;
+  transition: filter 0.25s;
+}
+.apple:nth-child(2n) svg { animation-delay: -1.3s; }
+.apple:nth-child(3n) svg { animation-delay: -2.6s; }
+@keyframes sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+.apple:hover, .apple:focus-visible { transform: scale(1.18); outline: none; }
+.apple:hover svg, .apple:focus-visible svg {
+  filter: drop-shadow(0 0 14px rgba(255, 140, 100, 0.95)) drop-shadow(0 0 30px rgba(255, 90, 60, 0.6));
+}
+.plaque {
+  position: absolute; left: 50%; top: 100%; transform: translate(-50%, 6px); white-space: nowrap;
+  font-family: "Cinzel", serif; font-size: max(0.7rem, calc(var(--size) * 0.22)); letter-spacing: 0.08em;
+  padding: 0.18em 0.75em; border-radius: 3px;
+  background: linear-gradient(#10302a, #081a17); color: #f4fff9;
+  border: 1.5px solid #b8933c; box-shadow: 0 0 0 1px var(--ink), 0 4px 10px rgba(0, 0, 0, 0.6);
+  transition: background 0.25s, color 0.25s;
+}
+.apple:hover .plaque, .apple:focus-visible .plaque { background: linear-gradient(#f3d27a, #c89632); color: var(--ink); }
+
+/* The Forbidden Fruit */
+.apple.golden svg {
+  filter: drop-shadow(0 0 10px rgba(255, 214, 110, 0.95)) drop-shadow(0 0 28px rgba(255, 190, 60, 0.7));
+  animation: sway 5s ease-in-out infinite, pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse { 50% { filter: drop-shadow(0 0 16px rgba(255, 230, 140, 1)) drop-shadow(0 0 44px rgba(255, 190, 60, 0.85)); } }
+.apple.golden .rays {
+  position: absolute; inset: -95%; border-radius: 50%; pointer-events: none; z-index: -1;
+  background:
+    radial-gradient(circle, rgba(255, 236, 160, 0.55) 0 18%, rgba(255, 210, 90, 0.18) 38%, transparent 62%),
+    repeating-conic-gradient(from 0deg, rgba(255, 230, 150, 0.26) 0 6deg, transparent 6deg 22deg);
+  -webkit-mask: radial-gradient(circle, #000 25%, transparent 66%); mask: radial-gradient(circle, #000 25%, transparent 66%);
+  animation: spin 22s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.apple.golden .plaque {
+  font-size: max(0.78rem, calc(var(--size) * 0.17));
+  background: linear-gradient(#f6dc8a, #c8902c); color: var(--ink); border-color: #fff3c4;
+  box-shadow: 0 0 0 1px var(--ink), 0 0 16px rgba(255, 210, 90, 0.7);
+}
+.apple.falling { position: fixed; z-index: 20; transition: none; pointer-events: none; }
+.apple.falling .plaque { opacity: 0; transition: opacity 0.3s; }
+
+/* ---------- Flash ---------- */
+.flash {
+  position: fixed; inset: 0; z-index: 30; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle at 50% 50%, #fffbe6 0%, #ffd970 35%, rgba(255, 190, 60, 0) 75%);
+}
+
+/* ---------- Earth (placeholder until its design arrives) ---------- */
+.earth {
+  position: relative; height: 100vh; height: 100dvh; display: grid; place-items: center; text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 60%, rgba(240, 200, 96, 0.18), transparent 55%),
+    radial-gradient(ellipse at 50% 120%, #2b4a2a, transparent 60%),
+    linear-gradient(#071412, #0d1f18 60%, #1a2a16);
+}
+.earth-inner { max-width: 640px; padding: 2rem; opacity: 0; transform: translateY(20px); transition: opacity 1.2s, transform 1.2s; }
+.earth.shown .earth-inner { opacity: 1; transform: none; }
+.earth h2 {
+  font-family: "Cinzel", serif; font-size: clamp(3rem, 9vw, 6rem); letter-spacing: 0.12em; color: #fff6d8;
+  text-shadow: 0 0 24px rgba(240, 200, 96, 0.6), 0 3px 0 var(--ink);
+}
+.earth-text { font-size: 1.3rem; font-style: italic; margin: 0.6rem 0 2rem; opacity: 0.85; }
+.return {
+  font-family: "Cinzel", serif; font-size: 0.95rem; letter-spacing: 0.15em; cursor: pointer;
+  padding: 0.7rem 1.6rem; color: #f4fff9; background: linear-gradient(#10302a, #081a17);
+  border: 1.5px solid #b8933c; border-radius: 3px; box-shadow: 0 0 0 1px var(--ink), 0 0 18px rgba(159, 245, 220, 0.25);
+  transition: background 0.25s, color 0.25s;
+}
+.return:hover, .return:focus-visible { background: linear-gradient(#f3d27a, #c89632); color: var(--ink); outline: none; }
+
+@media (max-width: 700px) {
+  .title { top: 1rem; }
+  .eyebrow { font-size: 0.7rem; }
+  .hint { font-size: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .apple svg, .apple.golden .rays { animation: none; }
+}

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Garden of Eden | Paradise Lost</title>
+  <meta name="description" content="A glowing Garden of Eden. Pick a fruit from the tree to read an essay." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="garden.css?v=2" />
+</head>
+<body>
+  <!--
+    HOW TO EDIT
+    - The apples and where they lead are listed in garden.js (const FRUIT at the top).
+    - The essays are in the essays/ folder: open one and replace the placeholder text.
+    - The Earth page is the <section id="earth"> below.
+  -->
+
+  <!-- Shared colors for the apple drawings -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <radialGradient id="appleRed" cx="35%" cy="35%" r="70%">
+        <stop offset="0" stop-color="#ff8a6a" />
+        <stop offset="0.45" stop-color="#d8322a" />
+        <stop offset="1" stop-color="#7a0f18" />
+      </radialGradient>
+      <radialGradient id="appleGold" cx="35%" cy="32%" r="72%">
+        <stop offset="0" stop-color="#fffbe0" />
+        <stop offset="0.35" stop-color="#ffd970" />
+        <stop offset="0.75" stop-color="#e09a22" />
+        <stop offset="1" stop-color="#8a5208" />
+      </radialGradient>
+      <linearGradient id="leafGreen" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#7fe0a8" />
+        <stop offset="1" stop-color="#1f7a50" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- ============ THE GARDEN ============ -->
+  <section class="garden" id="garden" aria-label="The Garden of Eden">
+    <canvas id="scene" aria-hidden="true"></canvas>
+    <header class="title">
+      <p class="eyebrow">Paradise Lost</p>
+      <h1>The Garden of Eden</h1>
+    </header>
+    <div id="apples"></div>
+    <p class="hint">Choose a fruit from the tree</p>
+    <div class="loading" id="loading">The garden awakens…</div>
+  </section>
+
+  <!-- ============ EARTH (reached by the Forbidden Fruit) ============ -->
+  <section class="earth" id="earth" aria-label="Earth">
+    <div class="earth-inner">
+      <p class="eyebrow">Beyond the Garden</p>
+      <h2>Earth</h2>
+      <p class="earth-text">This page is waiting for its design. Send the inspiration and it will be built here.</p>
+      <button class="return" id="return">Return to the Garden</button>
+    </div>
+  </section>
+
+  <div class="flash" id="flash" aria-hidden="true"></div>
+  <script type="module" src="garden.js?v=2"></script>
+</body>
+</html>
