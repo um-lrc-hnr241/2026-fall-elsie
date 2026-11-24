@@ -10,6 +10,11 @@ const APPLES = window.APPLES;
 
 // ---------- Seeded random so the tree looks the same every visit ----------
 let seed = 11;
+let seed2 = 99; // second random stream, for scenery
+const rand2 = () => {
+  seed2 = (seed2 * 16807) % 2147483647;
+  return (seed2 - 1) / 2147483646;
+};
 const rand = () => {
   seed = (seed * 16807) % 2147483647;
   return (seed - 1) / 2147483646;
@@ -45,11 +50,12 @@ container.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 200);
 const TARGET = V(0, 6.3, 0);
+const FIT = { half: 6.9, wide: 5.9 }; // updated once the tree is grown
 
 function fitDistance() {
   const aspect = window.innerWidth / window.innerHeight;
   const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  return Math.max(6.9 / halfH, 5.9 / (halfH * aspect)); // fit tree height, or canopy width on narrow screens
+  return Math.max(FIT.half / halfH, FIT.wide / (halfH * aspect)); // fit tree height, or canopy width on narrow screens
 }
 let baseDist = fitDistance();
 const startPos = V(0, 11, baseDist * 1.7);
@@ -244,6 +250,125 @@ function earthTex() {
   });
 }
 
+// ---------- Painted sky and distant landscape (a big backdrop around everything) ----------
+{
+  const W = 4096, H = 1024, BR = 40;
+  const BH = (2 * Math.PI * BR * H) / W;  // keeps the painting's proportions
+  const yTop = BH - 12;
+  const toCanvas = (y) => ((yTop - y) / BH) * H;
+  const r2 = rand2;
+  const tex = canvasTex(W, H, (ctx) => {
+    const inkLine = (w) => { ctx.strokeStyle = C.ink; ctx.lineWidth = w; ctx.stroke(); };
+    // sky
+    const g = ctx.createLinearGradient(0, 0, 0, toCanvas(6));
+    g.addColorStop(0, "#a9c6cf"); g.addColorStop(0.55, "#d6e3dc"); g.addColorStop(1, "#f6edd6");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+    // draw something twice near the edges so the panorama wraps seamlessly
+    const wrap = (x, fn) => { fn(x); if (x < 300) fn(x + W); if (x > W - 300) fn(x - W); };
+
+    // sun with wavy rays
+    wrap(W / 2 - 620, (x) => {
+      const y = toCanvas(22);
+      for (let i = 0; i < 16; i++) {
+        const a = (i / 16) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(x + Math.cos(a) * 62, y + Math.sin(a) * 62);
+        ctx.quadraticCurveTo(x + Math.cos(a + 0.12) * 85, y + Math.sin(a + 0.12) * 85, x + Math.cos(a) * (i % 2 ? 100 : 115), y + Math.sin(a) * (i % 2 ? 100 : 115));
+        ctx.strokeStyle = "#d9a82e"; ctx.lineWidth = 7; ctx.stroke();
+      }
+      ctx.beginPath(); ctx.arc(x, y, 55, 0, 7); ctx.fillStyle = "#f2c95a"; ctx.fill(); inkLine(4);
+      ctx.beginPath(); ctx.arc(x, y, 38, 0, 7); ctx.strokeStyle = "#fbe3a0"; ctx.lineWidth = 4; ctx.stroke();
+    });
+
+    // scalloped clouds with ink outlines
+    for (let i = 0; i < 18; i++) {
+      const cx = r2() * W, cy = toCanvas(15 + r2() * 14), cw = 70 + r2() * 90;
+      const n = 4 + Math.floor(r2() * 3);
+      if (Math.abs(cx - W / 2) < 700) continue; // keep the sky behind the title clear
+      wrap(cx, (x) => {
+        const puffs = [];
+        for (let k = 0; k < n; k++) {
+          const t = k / (n - 1);
+          puffs.push([x - cw / 2 + t * cw, cy - Math.sin(t * Math.PI) * cw * 0.18, cw * (0.16 + Math.sin(t * Math.PI) * 0.12)]);
+        }
+        const shape = (grow) => {
+          ctx.beginPath();
+          puffs.forEach(([px, py, pr]) => { ctx.moveTo(px + pr + grow, py); ctx.arc(px, py, pr + grow, 0, 7); });
+          ctx.rect(x - cw / 2 - grow, cy - 4 - grow, cw + grow * 2, cw * 0.14 + grow * 2);
+        };
+        shape(3); ctx.fillStyle = C.ink; ctx.fill();          // outline
+        shape(0); ctx.fillStyle = "#fbf6e8"; ctx.fill();      // cloud
+        ctx.beginPath(); ctx.moveTo(x - cw * 0.3, cy + cw * 0.05); ctx.quadraticCurveTo(x, cy - cw * 0.03, x + cw * 0.25, cy + cw * 0.05);
+        ctx.strokeStyle = "#b9ccd2"; ctx.lineWidth = 2.5; ctx.stroke();
+      });
+    }
+
+    // a few distant birds
+    for (let i = 0; i < 14; i++) {
+      const bx = r2() * W, by = toCanvas(16 + r2() * 12), s = 6 + r2() * 6;
+      ctx.beginPath(); ctx.moveTo(bx - s, by); ctx.quadraticCurveTo(bx - s / 2, by - s * 0.7, bx, by);
+      ctx.quadraticCurveTo(bx + s / 2, by - s * 0.7, bx + s, by); inkLine(2);
+    }
+
+    // rolling hills: far, middle, near (seamless waves)
+    const layers = [
+      { base: 7.2, amp: 1.4, f: [3, 7, 11], fill: "#c3cdaa", trees: 0 },
+      { base: 5.6, amp: 1.1, f: [4, 9, 14], fill: "#a2b38b", trees: 26 },
+      { base: 4.2, amp: 0.8, f: [5, 12, 17], fill: "#84a06f", trees: 40 },
+    ];
+    for (const L of layers) {
+      const ph = [r2() * 6, r2() * 6, r2() * 6];
+      const ridge = (x) => {
+        const u = (x / W) * Math.PI * 2;
+        const y = L.base + L.amp * (Math.sin(u * L.f[0] + ph[0]) * 0.6 + Math.sin(u * L.f[1] + ph[1]) * 0.3 + Math.sin(u * L.f[2] + ph[2]) * 0.1);
+        return toCanvas(y);
+      };
+      ctx.beginPath(); ctx.moveTo(0, H);
+      for (let x = 0; x <= W; x += 8) ctx.lineTo(x, ridge(x));
+      ctx.lineTo(W, H); ctx.closePath();
+      ctx.fillStyle = L.fill; ctx.fill();
+      ctx.beginPath();
+      for (let x = 0; x <= W; x += 8) x === 0 ? ctx.moveTo(x, ridge(x)) : ctx.lineTo(x, ridge(x));
+      inkLine(3);
+      // little trees on the ridge
+      for (let i = 0; i < L.trees; i++) {
+        const tx = r2() * W, ty = ridge(tx) + 4, s = (L.trees > 30 ? 1 : 0.75) * (0.8 + r2() * 0.5);
+        wrap(tx, (x) => {
+          if (r2() < 0.5) {   // round tree
+            ctx.beginPath(); ctx.moveTo(x, ty); ctx.lineTo(x, ty - 26 * s); inkLine(4 * s);
+            ctx.beginPath(); ctx.arc(x, ty - 36 * s, 16 * s, 0, 7); ctx.fillStyle = r2() < 0.5 ? "#5f8b6a" : "#6f9a74"; ctx.fill(); inkLine(2.5);
+          } else {            // cypress
+            ctx.beginPath(); ctx.ellipse(x, ty - 30 * s, 8 * s, 30 * s, 0, 0, 7);
+            ctx.fillStyle = "#4f7a5a"; ctx.fill(); inkLine(2.5);
+          }
+        });
+      }
+    }
+    // tiny flowers in the nearest fields
+    const flowerCols = ["#f1e6c8", "#e9c14a", "#d8503a", "#8f74c0", "#9fb7d6"];
+    const fg = ctx.createLinearGradient(0, toCanvas(4), 0, H);
+    fg.addColorStop(0, "rgba(84,110,70,0)"); fg.addColorStop(1, "rgba(84,110,70,0.55)");
+    ctx.fillStyle = fg; ctx.fillRect(0, toCanvas(4), W, H);
+    for (let i = 0; i < 1400; i++) {
+      const x = r2() * W, y = toCanvas(3.4 - r2() * 15);
+      ctx.beginPath(); ctx.arc(x, y, 0.8 + r2() * 1.2, 0, 7);
+      ctx.fillStyle = flowerCols[i % flowerCols.length]; ctx.fill();
+    }
+  });
+  const backdrop = new THREE.Mesh(
+    new THREE.CylinderGeometry(BR, BR, BH, 96, 1, true),
+    new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false })
+  );
+  backdrop.position.y = yTop - BH / 2;
+  scene.add(backdrop);
+  // meadow floor out to the backdrop
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(BR, 64), new THREE.MeshBasicMaterial({ color: "#7d9969" }));
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -0.03;
+  scene.add(floor);
+}
+
 // ---------- The hill ----------
 const HILL_R = 7, HILL_H = 1.5;
 const hillY = (r) => HILL_H * Math.sqrt(Math.max(0, 1 - (r * r) / (HILL_R * HILL_R)));
@@ -321,6 +446,8 @@ for (let k = 0; k < 6; k++) {
 
 // Curling, scroll-like branches
 const samples = []; // points along branches, used to place leaves/flowers/apples
+const STRETCH = 1.35; // how much taller the crown is than it is wide
+const stretch = (p) => V(p.x, trunkTop.y + (p.y - trunkTop.y) * STRETCH, p.z);
 function grow(start, dir, len, r0, depth, curl) {
   const d = dir.clone().normalize();
   const axis = new THREE.Vector3().crossVectors(d, UP);
@@ -335,12 +462,13 @@ function grow(start, dir, len, r0, depth, curl) {
     p = p.clone().addScaledVector(d, (len / n) * (1 - 0.45 * k));
     pts.push(p);
   }
-  const curve = new THREE.CatmullRomCurve3(pts);
+  const curve = new THREE.CatmullRomCurve3(pts);                 // branch layout
+  const shown = new THREE.CatmullRomCurve3(pts.map(stretch));   // what you see: taller
   const r1 = Math.max(0.03, r0 * 0.18);
-  inked(taperTube(curve, r0, r1), barkMat, 0.025, tree);
+  inked(taperTube(shown, r0, r1), barkMat, 0.025, tree);
   for (let t = 0.2; t <= 1.0001; t += 0.05) {
     const tt = Math.min(t, 1);
-    samples.push({ p: curve.getPointAt(tt), tan: curve.getTangentAt(tt), r: r0 + (r1 - r0) * tt, depth, t: tt });
+    samples.push({ p: shown.getPointAt(tt), tan: shown.getTangentAt(tt), r: r0 + (r1 - r0) * tt, depth, t: tt });
   }
   if (depth > 0) {
     const kids = depth === 2 ? 4 : 2;
@@ -366,6 +494,19 @@ const box = new THREE.Box3();
 samples.forEach((s) => box.expandByPoint(s.p));
 const CANOPY = box.getCenter(new THREE.Vector3());
 const RAD = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
+
+// Frame the camera around the whole tree, leaving room for the title
+{
+  const top = box.max.y + 0.7, bottom = -0.6;
+  FIT.half = (top - bottom) / 0.8 / 2;
+  FIT.wide = RAD.x + 1.3;
+  TARGET.y = bottom + FIT.half;
+  controls.target.copy(TARGET);
+  baseDist = fitDistance();
+  startPos.set(0, TARGET.y + 5, baseDist * 1.7);
+  camera.position.copy(startPos);
+  setZoomLimits();
+}
 
 // Leaf positions (built into one mesh later)
 let leaves = [];
