@@ -1,0 +1,194 @@
+:root {
+  --cream: #f6ecd6;
+  --gold: #e2bd6a;
+  --ink: #1c1712;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: #120f0c; color: var(--cream);
+  font-family: "EB Garamond", Georgia, serif; font-size: 1.12rem; line-height: 1.6;
+}
+
+/* ---------- Scenes ---------- */
+/* Each scene is taller than the screen; the painting stays pinned while you scroll through it */
+.scene { position: relative; height: 190vh; }
+.scene.hero { height: 170vh; }
+.stage { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+.layers { position: absolute; inset: 0; }
+.layers canvas {
+  position: absolute; left: 0; top: 0; width: 100%; height: 120%;
+  will-change: transform;
+}
+/* gentle vignette over each painting */
+.stage::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(10, 8, 6, 0.55) 100%);
+}
+
+/* ---------- Text panels ---------- */
+.panel {
+  position: absolute; z-index: 2; top: 50%; transform: translateY(-50%);
+  width: min(460px, 86vw); padding: 2rem 2.2rem;
+  background: rgba(20, 15, 10, 0.5); backdrop-filter: blur(4px);
+  border: 1px solid rgba(226, 189, 106, 0.45); border-radius: 3px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  opacity: 0; transition: opacity 0.2s linear;
+}
+.panel.left { left: 6vw; }
+.panel.right { right: 6vw; }
+.panel.center {
+  left: 50%; transform: translate(-50%, -50%); text-align: center; width: min(640px, 90vw);
+  background: rgba(20, 15, 10, 0.32);
+}
+.hero .panel { background: none; border: none; box-shadow: none; backdrop-filter: none; }
+
+.kicker, .numeral {
+  font-family: "Cormorant Garamond", serif; color: var(--gold);
+  letter-spacing: 0.3em; text-transform: uppercase; font-size: 0.95rem;
+}
+.numeral { font-size: 1.5rem; letter-spacing: 0.1em; }
+h1, h2 { font-family: "Cormorant Garamond", serif; font-weight: 600; line-height: 1; }
+h1 { font-size: clamp(3.4rem, 10vw, 7rem); text-shadow: 0 3px 24px rgba(0, 0, 0, 0.55); }
+h2 { font-size: clamp(2.4rem, 5vw, 3.4rem); margin: 0.2rem 0 1rem; }
+.sub {
+  font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 1.6rem;
+  margin: 0.4rem 0 1.4rem; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+h2::after {
+  content: ""; display: block; width: 70px; height: 2px; margin-top: 0.8rem;
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+blockquote {
+  font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 1.3rem; line-height: 1.45;
+  margin: 0 0 1rem; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+blockquote.big { font-size: clamp(1.6rem, 3.4vw, 2.3rem); }
+cite {
+  display: block; margin-top: 0.5rem; font-style: normal; font-size: 0.85rem;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold);
+}
+.more {
+  display: inline-block; margin-top: 0.8rem; padding: 0.45rem 1.2rem;
+  border: 1px solid var(--gold); color: var(--gold); text-decoration: none;
+  font-family: "Cormorant Garamond", serif; font-size: 1.05rem; letter-spacing: 0.12em; text-transform: uppercase;
+  transition: background 0.2s, color 0.2s;
+}
+.more:hover { background: var(--gold); color: var(--ink); }
+.more::after { content: " →"; }
+.scroll-cue { margin-top: 1.2rem; font-style: italic; opacity: 0.85; }
+.scroll-cue span { display: inline-block; animation: bob 1.8s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(6px); } }
+.credits { margin-top: 1.5rem; letter-spacing: 0.2em; text-transform: uppercase; font-size: 0.85rem; color: var(--gold); }
+
+/* ---------- Lightning in the Fall ---------- */
+.flash {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none; background: #fff; opacity: 0;
+  animation: lightning 7s infinite;
+}
+@keyframes lightning {
+  0%, 62%, 66%, 70%, 100% { opacity: 0; }
+  63% { opacity: 0.35; } 64% { opacity: 0.05; } 65% { opacity: 0.25; }
+}
+
+/* ---------- Top bar and chapter dots ---------- */
+.topbar {
+  position: fixed; z-index: 10; top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.6rem;
+  pointer-events: none;
+}
+.topbar a {
+  pointer-events: auto; color: var(--cream); text-decoration: none; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  font-family: "Cormorant Garamond", serif; letter-spacing: 0.2em; text-transform: uppercase; font-size: 0.95rem;
+}
+.topbar .switch { opacity: 0.8; font-size: 0.8rem; }
+.dots {
+  position: fixed; z-index: 10; right: 1.4rem; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 0.9rem;
+}
+.dots a {
+  position: relative; display: block; width: 11px; height: 11px; border-radius: 50%;
+  border: 1.5px solid var(--cream); background: transparent; transition: background 0.3s, transform 0.3s;
+}
+.dots a.active { background: var(--gold); border-color: var(--gold); transform: scale(1.25); }
+.dots a span {
+  position: absolute; right: 22px; top: 50%; transform: translateY(-50%); white-space: nowrap;
+  font-family: "Cormorant Garamond", serif; font-size: 0.95rem; letter-spacing: 0.08em;
+  opacity: 0; transition: opacity 0.2s; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+.dots a:hover span, .dots a:focus span { opacity: 1; }
+
+/* ---------- Painterly canvas grain over everything ---------- */
+.grain {
+  position: fixed; inset: 0; z-index: 5; pointer-events: none; opacity: 0.16; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.45  0 0 0 0 0.4  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+.toast {
+  position: fixed; z-index: 20; bottom: 2rem; left: 50%; transform: translate(-50%, 20px);
+  padding: 0.6rem 1.4rem; background: rgba(20, 15, 10, 0.85); border: 1px solid var(--gold);
+  font-family: "Cormorant Garamond", serif; font-size: 1.1rem; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Phones ---------- */
+@media (max-width: 700px) {
+  .panel.left, .panel.right { left: 50%; right: auto; transform: translate(-50%, 0); top: auto; bottom: 7vh; padding: 1.3rem 1.4rem; }
+  blockquote { font-size: 1.1rem; }
+  body { font-size: 1rem; }
+  .dots { right: 0.6rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .flash, .scroll-cue span { animation: none; }
+}
+
+/* =========================================================
+   Paper cut-out look (overrides the rules above)
+   ========================================================= */
+:root { --paper: #fbf5e8; --ink: #2b2420; --accent: #b5523a; }
+body { background: #efe4cf; color: var(--ink); }
+.stage::after { background: none; }
+.panel {
+  background: var(--paper); color: var(--ink); backdrop-filter: none;
+  border: none; border-radius: 4px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 3px 6px rgba(40, 25, 10, 0.18), 0 16px 34px rgba(40, 25, 10, 0.32);
+}
+.panel.center { background: var(--paper); }
+.panel blockquote, .panel h1, .panel h2, .panel .sub { text-shadow: none; }
+.kicker, .numeral, cite, .credits { color: var(--accent); }
+h2::after { background: linear-gradient(90deg, var(--accent), transparent); }
+.more { border-color: var(--accent); color: var(--accent); border-radius: 3px; }
+.more:hover { background: var(--accent); color: var(--paper); }
+/* opening title sits on the paper sky, not a card */
+.hero .panel { background: none; box-shadow: none; }
+.hero h1 { color: #3a2a22; text-shadow: 0 2px 0 rgba(255, 245, 230, 0.6); }
+.hero .sub, .hero blockquote, .hero .scroll-cue { color: #4a3528; }
+.hero blockquote {
+  display: inline-block; background: rgba(251, 245, 232, 0.94); padding: 0.9rem 1.4rem; border-radius: 4px;
+  box-shadow: 0 8px 22px rgba(40, 25, 10, 0.2);
+}
+/* top bar and dots as little paper tags */
+.topbar a {
+  color: var(--ink); text-shadow: none; background: var(--paper); padding: 0.3rem 0.8rem; border-radius: 3px;
+  box-shadow: 0 3px 8px rgba(40, 25, 10, 0.25);
+}
+.dots a { border-color: var(--ink); background: var(--paper); box-shadow: 0 2px 5px rgba(40, 25, 10, 0.35); }
+.dots a.active { background: var(--accent); border-color: var(--accent); }
+.dots a span {
+  color: var(--ink); text-shadow: none; background: var(--paper); padding: 0.1rem 0.5rem; border-radius: 3px;
+  box-shadow: 0 2px 6px rgba(40, 25, 10, 0.25);
+}
+.grain { opacity: 0.08; mix-blend-mode: multiply; }
+.toast { background: var(--paper); color: var(--ink); border: none; box-shadow: 0 8px 20px rgba(40, 25, 10, 0.3); }
+@media (max-width: 700px) {
+  .hero blockquote { font-size: 1rem; }
+}
+.topbar a { white-space: nowrap; }
+@media (max-width: 700px) {
+  .topbar { padding: 0.7rem 0.8rem; }
+  .topbar a { font-size: 0.72rem; letter-spacing: 0.12em; padding: 0.25rem 0.55rem; }
+}
