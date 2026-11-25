@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="garden.css?v=4" />
+  <link rel="stylesheet" href="garden.css?v=6" />
 </head>
 <body>
   <!--
@@ -43,11 +43,16 @@
   <section class="garden" id="garden" aria-label="The Garden of Eden">
     <canvas id="scene" aria-hidden="true"></canvas>
     <header class="title">
-      <p class="eyebrow">Paradise Lost</p>
-      <h1>The Garden of Eden</h1>
+      <p class="eyebrow">The Garden</p>
+      <h1>Eden</h1>
+      <div class="rule"></div>
+      <p class="intro">Five fruits hang in the canopy. Pluck one and its page opens. The sixth is gold — it does not open a page. It falls.</p>
     </header>
     <div id="apples"></div>
-    <p class="hint">Choose a fruit from the tree</p>
+    <div class="bottom">
+      <a class="island-link" href="island.html">Enter the floating island <span aria-hidden="true">→</span></a>
+      <p class="tagline">A living index</p>
+    </div>
     <div class="loading" id="loading">The garden awakens…</div>
   </section>
 
@@ -62,6 +67,6 @@
   </section>
 
   <div class="flash" id="flash" aria-hidden="true"></div>
-  <script type="module" src="garden.js?v=4"></script>
+  <script type="module" src="garden.js?v=5"></script>
 </body>
 </html>

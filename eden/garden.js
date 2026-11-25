@@ -41,10 +41,11 @@ function computeView() {
   W = canvas.clientWidth; H = canvas.clientHeight;
   DPR = Math.min(window.devicePixelRatio || 1, 2);
   // fit the whole tree (from the top of the crown to the ground) below the title
-  const top = W < 700 ? 86 : 104;
-  S = Math.min(W / 840, (H - top) / 960);
+  // leave room for the heading above and the island link below
+  const top = W < 700 ? 190 : 215, bottom = W < 700 ? 70 : 80;
+  S = Math.min(W / 840, (H - top - bottom) / 900);
   OX = W / 2 - 800 * S;
-  OY = top + 70 * S + Math.max(0, (H - top - 960 * S) * 0.35);
+  OY = top + 40 * S + Math.max(0, (H - top - bottom - 900 * S) * 0.4);
   for (const c of [canvas, ...Object.values(layers)]) { c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); }
 }
 // draw in painting coordinates

@@ -132,3 +132,29 @@ body { font-family: "Cormorant Garamond", Georgia, serif; }
 @media (prefers-reduced-motion: reduce) {
   .apple svg, .apple.golden .rays { animation: none; }
 }
+
+/* ---------- Heading, intro and bottom link ---------- */
+.title { top: 1.2rem; }
+.title h1 { font-size: clamp(2.6rem, 6vw, 4.6rem); letter-spacing: 0.16em; text-transform: uppercase; line-height: 1.05; margin-top: 0.2rem; }
+.rule { width: 11rem; height: 1px; margin: 0.7rem auto 0.6rem; background: linear-gradient(90deg, transparent, rgba(255, 220, 130, 0.9), transparent); }
+.intro {
+  max-width: 31rem; margin: 0 auto; padding: 0 1rem; font-size: 1.05rem; text-wrap: balance; line-height: 1.45;
+  color: #f4fff9; text-shadow: 0 0 2px #000, 0 2px 10px rgba(8, 32, 25, 0.95);
+}
+.bottom {
+  position: absolute; z-index: 3; left: 0; right: 0; bottom: 1rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.45rem;
+}
+.island-link {
+  font-family: "Cinzel", serif; font-size: 0.78rem; letter-spacing: 0.28em; text-transform: uppercase; text-decoration: none;
+  color: #ffe7a0; padding: 0.7rem 1.4rem; border: 1px solid rgba(240, 200, 96, 0.55);
+  background: rgba(8, 32, 25, 0.6); backdrop-filter: blur(3px); transition: background 0.25s, border-color 0.25s;
+}
+.island-link span { display: inline-block; transition: transform 0.25s; }
+.island-link:hover, .island-link:focus-visible { background: rgba(240, 200, 96, 0.18); border-color: rgba(240, 200, 96, 0.95); outline: none; }
+.island-link:hover span { transform: translateX(4px); }
+.tagline { font-family: "Cinzel", serif; font-size: 0.62rem; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(244, 255, 249, 0.7); text-shadow: 0 1px 4px #000; }
+@media (max-width: 700px) {
+  .intro { font-size: 0.92rem; max-width: 20rem; }
+  .island-link { font-size: 0.68rem; letter-spacing: 0.2em; padding: 0.55rem 1rem; }
+}
