@@ -228,65 +228,162 @@ function star(g, x, y, r, n = 5) {
 // ---------- Glowing veins (drawn live so they can pulse) ----------
 let veins = [];
 
-// ---------- 1) Background: misty cliffs, waterfalls, lush ledges ----------
+// ---------- 1) Background: sky, terraced misty cliffs, winding waterfalls, temples ----------
 function paintBackground() {
   seed = 1234;
   const g = layers.bg.getContext("2d");
   g.setTransform(1, 0, 0, 1, 0, 0);
   g.clearRect(0, 0, layers.bg.width, layers.bg.height);
-  // luminous mint glow behind everything
-  const cx = (OX + 800 * S) * DPR, cy = (OY + 330 * S) * DPR, R = Math.max(W, H) * DPR;
-  const grad = g.createRadialGradient(cx, cy, 0, cx, cy, R * 0.9);
-  grad.addColorStop(0, "#d4fbec"); grad.addColorStop(0.16, "#93e4c7"); grad.addColorStop(0.38, "#55b894");
-  grad.addColorStop(0.7, "#2a7d66"); grad.addColorStop(1, "#11423a");
-  g.fillStyle = grad; g.fillRect(0, 0, layers.bg.width, layers.bg.height);
+  // light blue sky fading to pale mint at the horizon
+  const sky = g.createLinearGradient(0, 0, 0, layers.bg.height);
+  sky.addColorStop(0, "#9fd4ee"); sky.addColorStop(0.35, "#c8ecf2"); sky.addColorStop(0.6, "#dcf7ee"); sky.addColorStop(1, "#bfeedd");
+  g.fillStyle = sky; g.fillRect(0, 0, layers.bg.width, layers.bg.height);
   view(g);
 
-  const fog = (y0, y1, a) => {
-    const f = g.createLinearGradient(0, y0, 0, y1);
-    f.addColorStop(0, "rgba(235,255,248,0)"); f.addColorStop(0.6, `rgba(235,255,248,${a})`); f.addColorStop(1, "rgba(235,255,248,0)");
-    g.fillStyle = f; g.fillRect(-1000, y0, 3600, y1 - y0);
-  };
-  // a pillar of rock with a lush top and a thin waterfall
-  const pillar = (x, top, wd, fill, line, lw, pal, inkCol, fall = true) => {
-    g.beginPath(); g.moveTo(x - wd / 2, 1100);
-    g.lineTo(x - wd / 2 + 10, top + 60); g.quadraticCurveTo(x - wd / 2, top, x - wd * 0.1, top + 6);
-    g.quadraticCurveTo(x + wd * 0.2, top - 10, x + wd / 2 - 6, top + 20); g.lineTo(x + wd / 2, 1100); g.closePath();
-    g.fillStyle = fill; g.fill(); g.strokeStyle = line; g.lineWidth = lw; g.stroke();
-    for (let k = 0; k < 5; k++) { // ledges
-      const y = top + 80 + k * 90 + rand() * 30;
-      g.beginPath(); g.moveTo(x - wd / 2 + 12, y); g.quadraticCurveTo(x, y - 10, x + wd / 2 - 10, y + 4);
-      g.strokeStyle = line; g.lineWidth = lw * 0.8; g.stroke();
-    }
-    if (fall) {
-      const fx = x + (rand() - 0.5) * wd * 0.4;
-      g.beginPath(); g.rect(fx - 9, top + 20, 18, 1100); g.fillStyle = "rgba(245,255,252,0.9)"; g.fill();
-      g.strokeStyle = line; g.lineWidth = lw * 0.6; g.stroke();
-    }
-    for (let k = 0; k < 4; k++) cluster(g, x - wd * 0.45 + k * wd * 0.3, top + 6 - (k % 2) * 14, wd * 0.24, pal, [800, 360], { lw: lw * 1.6, inkCol, edge: true });
-  };
+  const LINE = "#2c6f60";
+  // Greek-style curling clouds in the sky
+  for (const [x, y, r] of [[120, -230, 46], [330, -330, 36], [1270, -330, 36], [1480, -210, 40], [-140, -120, 40], [1760, -110, 42]]) {
+    curl(g, x, y, r, "rgba(255,255,255,0.95)", "#8cc9dc");
+  }
 
-  // far: pale misty pillars
-  for (const [x, top, wd] of [[60, 150, 190], [300, 90, 170], [520, 200, 150], [1080, 190, 150], [1300, 100, 170], [1540, 150, 190], [-180, 120, 200], [1780, 120, 200]]) {
-    pillar(x, top, wd, "#b8eadb", "#86cbb5", 2.5, ["#94d8bd", "#aee6cf", "#cbf2e2", "#ffffff"], "#86cbb5", false);
-  }
-  fog(120, 520, 0.55);
-  // middle: lush cliffs with big waterfalls framing the tree
-  for (const [x, top, wd] of [[180, 230, 260], [1420, 230, 260], [-90, 160, 240], [1690, 160, 240]]) {
-    pillar(x, top, wd, "#6cc4a2", "#2f8166", 3.5, ["#3f9f7a", "#58b88c", "#8ddcb0", "#e8fff4"], "#1f5e4a", false);
-  }
-  // great twin waterfalls behind the tree, with curling mist at their feet
-  for (const [x, top, bot, wd] of [[610, 60, 600, 40], [990, 80, 590, 52]]) {
-    const pts = curve([[x, top], [x - 10, (top + bot) * 0.45], [x + 8, (top + bot) * 0.75], [x - 2, bot]], 12);
-    taperPath(g, pts, wd * 0.65, wd);
-    g.fillStyle = C.water; g.fill(); g.strokeStyle = "#5fb89e"; g.lineWidth = 2.5; g.stroke();
-    for (let k = 0; k < 4; k++) {
-      polyline(g, pts.map(([px, py]) => [px + (k - 1.5) * wd * 0.18, py]));
-      g.strokeStyle = "rgba(150,225,205,0.7)"; g.lineWidth = 1.6; g.stroke();
+  // a terrace band: wavy top, ledge line, drippy bottom edge like hanging stone
+  const band = (top, height, fill, light, x0 = -900, x1 = 2500, lw = 2) => {
+    g.beginPath();
+    g.moveTo(x0, top(x0));
+    for (let x = x0; x <= x1; x += 20) g.lineTo(x, top(x));
+    let x = x1;
+    while (x > x0) { // jagged drips along the bottom
+      const w = 14 + rand() * 30, y = top(x) + height;
+      g.lineTo(x, y); g.lineTo(x - w * 0.5, y + 6 + rand() * 28); g.lineTo(x - w, y);
+      x -= w;
     }
-    for (let k = 0; k < 5; k++) curl(g, x - 80 + k * 40, bot + (k % 2) * 12, 24 + rand() * 10, "rgba(245,255,252,0.95)", "#8fd6c2");
+    g.closePath();
+    g.fillStyle = fill; g.fill(); g.strokeStyle = LINE; g.lineWidth = lw; g.stroke();
+    // ledge rim and cracks
+    g.beginPath();
+    for (let xx = x0; xx <= x1; xx += 20) xx === x0 ? g.moveTo(xx, top(xx) + 7) : g.lineTo(xx, top(xx) + 7);
+    g.strokeStyle = light; g.lineWidth = 2.5; g.stroke();
+    for (let k = 0; k < (x1 - x0) / 70; k++) {
+      const cx = x0 + rand() * (x1 - x0), cy = top(cx) + 12 + rand() * height * 0.5;
+      g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + (rand() - 0.5) * 8, cy + 10 + rand() * height * 0.4);
+      g.strokeStyle = LINE; g.lineWidth = 1.2; g.stroke();
+    }
+  };
+  const valley = (x, depth) => depth * Math.exp(-(((x - 800) / 520) ** 2)); // terraces dip toward the middle
+
+  // far terraces: palest, stepping down into the valley
+  const farCols = [["#d4f3ea", "#f2fffb"], ["#c3ede2", "#e8fff8"], ["#b1e6d8", "#e0fbf2"], ["#9fdccd", "#d6f7ec"], ["#8ed3c2", "#ccf3e6"]];
+  farCols.forEach(([fill, light], i) => {
+    const base = -40 + i * 95;
+    band((x) => base + valley(x, 140 - i * 10) + Math.sin(x * 0.013 + i) * 10, 70 + i * 8, fill, light, -900, 2500, 1.6);
+  });
+  // misty light pooling in the valley
+  const glow = g.createRadialGradient(800, 380, 0, 800, 380, 560);
+  glow.addColorStop(0, "rgba(240,255,250,0.75)"); glow.addColorStop(1, "rgba(240,255,250,0)");
+  g.fillStyle = glow; g.fillRect(200, -200, 1200, 1100);
+
+  // winding streams on the valley floor
+  for (const [sx, dir] of [[700, -1], [900, 1]]) {
+    const pts = curve([[sx, 470], [sx + dir * 60, 520], [sx - dir * 40, 570], [sx + dir * 90, 620], [sx + dir * 20, 680]], 10);
+    taperPath(g, pts, 18, 46);
+    g.fillStyle = "rgba(240,255,252,0.9)"; g.fill(); g.strokeStyle = LINE; g.lineWidth = 1.6; g.stroke();
   }
-  fog(380, 700, 0.45);
+
+  // towering rock formations left and right: stacks of rounded stone lobes at three depths,
+  // each with a lit top, a shaded side and dripping stone beneath
+  const lobe = (x, top, w, h, fill, topCol, shade) => {
+    const L = x - w / 2, R = x + w / 2, peak = top - 10 - rand() * 14;
+    const path = () => {
+      g.beginPath();
+      g.moveTo(L, top + h);
+      g.quadraticCurveTo(L - 8, top + h * 0.5, L + 6, top + 22);
+      g.quadraticCurveTo(L + w * 0.2, peak, x + (rand() - 0.5) * 10, peak + 4);
+      g.quadraticCurveTo(R - w * 0.15, peak - 2, R - 6, top + 20);
+      g.quadraticCurveTo(R + 8, top + h * 0.5, R, top + h);
+      let xx = R;
+      while (xx > L) { const dw = 10 + rand() * 18; g.lineTo(xx - dw * 0.5, top + h + 8 + rand() * 26); g.lineTo(xx - dw, top + h); xx -= dw; }
+      g.closePath();
+    };
+    path(); g.fillStyle = fill; g.fill();
+    g.save(); g.clip();
+    g.fillStyle = shade; g.fillRect(x + w * 0.18, top - 40, w, h + 80);           // shaded side
+    g.beginPath(); g.ellipse(x - w * 0.05, top + 8, w * 0.55, 26, 0, 0, Math.PI * 2); g.fillStyle = topCol; g.fill(); // lit top
+    for (let k = 0; k < 3; k++) {                                                   // cracks and drips
+      const cy = top + 40 + rand() * (h - 60), cx = L + 14 + rand() * (w - 28);
+      g.beginPath(); g.moveTo(cx - 16, cy); g.lineTo(cx + 18, cy + 2);
+      for (let d = -12; d < 16; d += 7 + rand() * 5) { g.moveTo(cx + d, cy + 1); g.lineTo(cx + d + 3, cy + 8 + rand() * 12); }
+      g.strokeStyle = LINE; g.lineWidth = 1.2; g.stroke();
+    }
+    g.restore();
+    g.strokeStyle = LINE; g.lineWidth = 2.2; g.stroke();
+  };
+  for (const side of [-1, 1]) {
+    const X = (x) => (side < 0 ? x : 1600 - x);
+    const tiers = [
+      { cols: ["#bfece0", "#ecfdf7", "#a4dccd"], xs: [40, 160, 280, 395, 500], top: [-260, -180, -300, -120, -40], w: 140, h: 240 },
+      { cols: ["#94d6c3", "#d0f5e9", "#77c3ad"], xs: [-20, 100, 215, 330, 440], top: [-160, -60, -200, 20, 120], w: 150, h: 250 },
+      { cols: ["#68bca5", "#a9e8d4", "#4fa38d"], xs: [-60, 60, 175, 290, 380], top: [-40, 80, -80, 200, 330], w: 160, h: 260 },
+    ];
+    for (const t of tiers) {
+      t.xs.forEach((x, i) => {
+        for (let k = 0; k < 4; k++) {
+          const top = t.top[i] + k * (t.h - 20) + (rand() - 0.5) * 30;
+          if (top > 720) break;
+          lobe(X(x + (rand() - 0.5) * 20), top, t.w * (0.85 + rand() * 0.3), t.h, ...t.cols);
+        }
+      });
+    }
+  }
+
+  // little Greek temples on the left cliffs
+  const temple = (x, y, s) => {
+    g.save(); g.translate(x, y); g.scale(s, s);
+    g.beginPath(); g.rect(-34, -6, 68, 8); g.rect(-30, -10, 60, 4); g.fillStyle = "#e8f7f2"; g.fill(); g.strokeStyle = LINE; g.lineWidth = 1.6; g.stroke();
+    for (let k = 0; k < 4; k++) { g.beginPath(); g.rect(-26 + k * 16, -40, 7, 30); g.fillStyle = "#f4fffb"; g.fill(); g.stroke(); }
+    g.beginPath(); g.rect(-32, -46, 64, 6); g.fillStyle = "#e8f7f2"; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-36, -46); g.lineTo(0, -64); g.lineTo(36, -46); g.closePath(); g.fillStyle = "#dff3ec"; g.fill(); g.stroke();
+    g.beginPath(); g.ellipse(-6, -60, 22, 6, -0.2, 0, Math.PI * 2); g.fillStyle = "#6dc69b"; g.fill(); g.stroke();
+    g.restore();
+  };
+  temple(395, -128, 0.75); temple(160, -188, 0.8); temple(290, 206, 0.8); temple(1205, -128, 0.7);
+
+  // wide winding waterfalls with dashed edges and swirling curls
+  const fall = (pts0, w0, w1) => {
+    const pts = curve(pts0, 14);
+    taperPath(g, pts, w0, w1);
+    g.fillStyle = "rgba(236,255,250,0.92)"; g.fill();
+    g.setLineDash([7, 6]); g.strokeStyle = "#5fae98"; g.lineWidth = 2; g.stroke(); g.setLineDash([]);
+    for (let k = 0; k < 3; k++) {
+      polyline(g, pts.map(([x, y], i) => [x + (k - 1) * lerp(w0, w1, i / pts.length) * 0.25, y]));
+      g.strokeStyle = "rgba(150,215,200,0.6)"; g.lineWidth = 1.4; g.stroke();
+    }
+    for (let i = 4; i < pts.length; i += 9) { // spiral curls along the edges
+      const [x, y] = pts[i], wd = lerp(w0, w1, i / pts.length) / 2;
+      for (const s of [-1, 1]) {
+        g.beginPath();
+        for (let a = 0; a < Math.PI * 3; a += 0.25) {
+          const r = 9 * (1 - a / (Math.PI * 3.3));
+          const px = x + s * wd * 0.75 + Math.cos(a * s) * r, py = y + Math.sin(a * s) * r;
+          a ? g.lineTo(px, py) : g.moveTo(px, py);
+        }
+        g.strokeStyle = "#7cc3b0"; g.lineWidth = 1.5; g.stroke();
+      }
+    }
+    const [bx, by] = pts[pts.length - 1];
+    for (let k = 0; k < 4; k++) curl(g, bx - 54 + k * 36, by + (k % 2) * 10, 20 + rand() * 8, "rgba(250,255,253,0.95)", "#8fd6c2");
+  };
+  fall([[230, -230], [270, -40], [300, 150], [380, 360], [500, 590]], 56, 100);
+  fall([[1370, -200], [1330, -10], [1300, 170], [1220, 370], [1100, 590]], 52, 96);
+  fall([[455, -60], [470, 120], [520, 300], [600, 500]], 34, 60);
+  fall([[800, -120], [790, 60], [810, 240], [800, 420]], 30, 50);
+
+  // soft mist drifting through the valley
+  for (const [y0, y1, a] of [[200, 520, 0.4], [420, 700, 0.5]]) {
+    const f = g.createLinearGradient(0, y0, 0, y1);
+    f.addColorStop(0, "rgba(245,255,252,0)"); f.addColorStop(0.6, `rgba(245,255,252,${a})`); f.addColorStop(1, "rgba(245,255,252,0)");
+    g.fillStyle = f; g.fillRect(-1000, y0, 3600, y1 - y0);
+  }
+
   // a lush ridge behind the clearing
   g.beginPath(); g.moveTo(-900, 1300);
   for (let x = -900; x <= 2500; x += 30) g.lineTo(x, 610 + Math.sin(x * 0.01) * 24 + Math.sin(x * 0.027) * 12);
@@ -297,10 +394,10 @@ function paintBackground() {
     if (Math.abs(x - 800) < 150) continue;
     cluster(g, x, 640 + rand() * 40, 46 + rand() * 24, C.bush, [800, 380], { lw: 4.5, blossoms: 3 });
   }
-  // hanging vines
-  for (let i = 0; i < 24; i++) {
-    const x = -200 + rand() * 2000, len = 90 + rand() * 220;
-    const pts = curve([[x, -140], [x + (rand() - 0.5) * 40, len * 0.5], [x + (rand() - 0.5) * 50, len]], 8);
+  // vines trailing from the cliff tops
+  for (let i = 0; i < 16; i++) {
+    const side = i % 2 ? 1 : -1, x = side < 0 ? 200 + rand() * 260 : 1400 - rand() * 260, top = -300 + rand() * 200, len = 120 + rand() * 220;
+    const pts = curve([[x, top], [x + (rand() - 0.5) * 40, top + len * 0.5], [x + (rand() - 0.5) * 50, top + len]], 8);
     polyline(g, pts); g.strokeStyle = INK; g.lineWidth = 4.5; g.stroke();
     polyline(g, pts); g.strokeStyle = "#4fae86"; g.lineWidth = 2.2; g.stroke();
     for (let k = 2; k < pts.length; k += 2) {
@@ -489,6 +586,10 @@ function frame(t) {
     g.addColorStop(0, `rgba(225,255,245,${a * 1.7})`); g.addColorStop(1, "rgba(225,255,245,0)");
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.moveTo(s.x - s.w * 0.35, -300); ctx.lineTo(s.x + s.w * 0.35, -300); ctx.lineTo(s.x + s.w, 820); ctx.lineTo(s.x - s.w, 820); ctx.closePath(); ctx.fill();
+    for (const [dx, col] of [[-1, "255,170,210"], [1, "150,210,255"]]) { // faint rainbow edges
+      ctx.beginPath(); ctx.moveTo(s.x + dx * s.w * 0.35, -300); ctx.lineTo(s.x + dx * s.w, 820);
+      ctx.strokeStyle = `rgba(${col},${a * 1.4})`; ctx.lineWidth = 3; ctx.stroke();
+    }
   }
   ctx.globalCompositeOperation = "source-over";
 
